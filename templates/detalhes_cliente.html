@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Cliente</title>
+</head>
+<body>
+    <h1>Detalhes do Cliente</h1>
+    
+    <p><strong>Nome Completo:</strong> {{ cliente.nome_completo }}</p>
+    <p><strong>Data de Nascimento:</strong> {{ cliente.data_nascimento }}</p>
+    <p><strong>Identidade:</strong> {{ cliente.identidade }}</p>
+    <p><strong>Telefone:</strong> {{ cliente.telefone }}</p>
+    <p><strong>Rua:</strong> {{ cliente.rua }}</p>
+    <p><strong>Bairro:</strong> {{ cliente.bairro }}</p>
+    <p><strong>Cidade:</strong> {{ cliente.cidade }}</p>
+    <p><strong>Profissão:</strong> {{ cliente.profissao }}</p>
+    <p><strong>Escolaridade:</strong> {{ cliente.escolaridade }}</p>
+
+    <a href="{{ url_for('clientes') }}">Voltar</a>
+</body>
+</html>

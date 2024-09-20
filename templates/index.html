@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Livraria</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/clientes">Clientes</a></li>
+                <li><a href="/livros">Livros</a></li>
+                <li><a href="/configuracao">Configuração</a></li>
+            </ul>
+        </aside>
+        <main class="content">
+            {% block content %}
+            <h1>Bem-vindo à Sistema Livraria!</h1>
+            <p>Selecione uma das opções no menu ao lado.</p>
+            {% endblock %}
+        </main>
+    </div>
+</body>
+</html>

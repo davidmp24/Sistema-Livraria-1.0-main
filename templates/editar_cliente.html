@@ -1,0 +1,43 @@
+{% extends "index.html" %}
+
+{% block content %}
+    <h1>Editar Cliente</h1>
+
+    <form method="POST" action="{{ url_for('editar_cliente', id=cliente.id) }}">
+        <label for="nome_completo">Nome Completo:</label>
+        <input type="text" id="nome_completo" name="nome_completo" value="{{ cliente.nome_completo }}" required>
+
+        <label for="data_nascimento">Data de Nascimento:</label>
+        <input type="date" id="data_nascimento" name="data_nascimento" value="{{ cliente.data_nascimento }}" required>
+
+        <label for="identidade">Número de Identidade:</label>
+        <input type="text" id="identidade" name="identidade" value="{{ cliente.identidade }}" required>
+
+        <label for="telefone">Telefone:</label>
+        <input type="number" id="telefone" name="telefone" value="{{ cliente.telefone }}" required>
+
+        <label for="rua">Rua:</label>
+        <input type="text" id="rua" name="rua" value="{{ cliente.rua }}" required>
+
+        <label for="bairro">Bairro:</label>
+        <input type="text" id="bairro" name="bairro" value="{{ cliente.bairro }}" required>
+        
+        <label for="cidade">Cidade:</label>
+        <input type="text" id="cidade" name="cidade" value="{{ cliente.cidade }}" required>
+
+        <label for="profissao">Profissão:</label>
+        <input type="text" id="profissao" name="profissao" value="{{ cliente.profissao }}" required>
+
+        <label for="escolaridade">Escolaridade:</label>
+        <select id="escolaridade" name="escolaridade" required>
+            <option value="">Selecione o nível de escolaridade</option>
+            <option value="Fundamental" {% if cliente.escolaridade == 'Fundamental' %}selected{% endif %}>Ensino Fundamental</option>
+            <option value="Médio" {% if cliente.escolaridade == 'Médio' %}selected{% endif %}>Ensino Médio</option>
+            <option value="Superior" {% if cliente.escolaridade == 'Superior' %}selected{% endif %}>Ensino Superior</option>
+            <option value="Pós-graduação" {% if cliente.escolaridade == 'Pós-graduação' %}selected{% endif %}>Pós-graduação</option>
+            <option value="Não Estudando" {% if cliente.escolaridade == 'Não Estudando' %}selected{% endif %}>Não está estudando</option>
+        </select>
+
+        <button type="submit">Atualizar Cliente</button>
+    </form>
+{% endblock %}
