@@ -149,6 +149,5 @@ def configuracao():
 
 if __name__ == '__main__':
     with app.app_context():
-        db.drop_all()
-        db.create_all()   # Cria as tabelas no banco de dados
-    app.run(debug=True)
+        db.create_all()  # Certifique-se de que as tabelas estão sendo criadas
+    app.run(debug=True)    
