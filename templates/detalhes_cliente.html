@@ -4,20 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalhes do Cliente</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <h1>Detalhes do Cliente</h1>
-    
-    <p><strong>Nome Completo:</strong> {{ cliente.nome_completo }}</p>
-    <p><strong>Data de Nascimento:</strong> {{ cliente.data_nascimento }}</p>
-    <p><strong>Identidade:</strong> {{ cliente.identidade }}</p>
-    <p><strong>Telefone:</strong> {{ cliente.telefone }}</p>
-    <p><strong>Rua:</strong> {{ cliente.rua }}</p>
-    <p><strong>Bairro:</strong> {{ cliente.bairro }}</p>
-    <p><strong>Cidade:</strong> {{ cliente.cidade }}</p>
-    <p><strong>Profissão:</strong> {{ cliente.profissao }}</p>
-    <p><strong>Escolaridade:</strong> {{ cliente.escolaridade }}</p>
 
-    <a href="{{ url_for('clientes') }}">Voltar</a>
+    <p><strong>ID:</strong> <span id="cliente_id">{{ cliente.id }}</span></p>
+    <p><strong>Nome Completo:</strong> <span id="cliente_nome">{{ cliente.nome_completo }}</span></p>
+    <p><strong>Data de Nascimento:</strong> <span id="cliente_data_nascimento">{{ cliente.data_nascimento }}</span></p>
+    <p><strong>Identidade:</strong> <span id="cliente_identidade">{{ cliente.identidade }}</span></p>
+    <p><strong>Telefone:</strong> <span id="cliente_telefone">{{ cliente.telefone }}</span></p>
+    <p><strong>Rua:</strong> <span id="cliente_rua">{{ cliente.rua }}</span></p>
+    <p><strong>Bairro:</strong> <span id="cliente_bairro">{{ cliente.bairro }}</span></p>
+    <p><strong>Cidade:</strong> <span id="cliente_cidade">{{ cliente.cidade }}</span></p>
+    <p><strong>Profissão:</strong> <span id="cliente_profissao">{{ cliente.profissao }}</span></p>
+    <p><strong>Escolaridade:</strong> <span id="cliente_escolaridade">{{ cliente.escolaridade }}</span></p>
+
+    <!-- Botão Fechar -->
+    <button onclick="fecharJanela()">Voltar</button>
+
+    <!-- Botão Salvar como PDF -->
+    <button onclick="salvarComoPDF()">Salvar</button>
+
+    <script>
+        function fecharJanela() {
+            window.close();
+        }
+
+        function salvarComoPDF() {
+            const { jsPDF } = window.jspdf;
+
+            // Criar uma nova instância do jsPDF
+            const doc = new jsPDF();
+
+            // Adicionar os dados do cliente no PDF
+            doc.text("Detalhes do Cliente", 10, 10);
+            doc.text(`ID: ${document.getElementById('cliente_id').innerText}`, 10, 20);
+            doc.text(`Nome Completo: ${document.getElementById('cliente_nome').innerText}`, 10, 30);
+            doc.text(`Data de Nascimento: ${document.getElementById('cliente_data_nascimento').innerText}`, 10, 40);
+            doc.text(`Identidade: ${document.getElementById('cliente_identidade').innerText}`, 10, 50);
+            doc.text(`Telefone: ${document.getElementById('cliente_telefone').innerText}`, 10, 60);
+            doc.text(`Rua: ${document.getElementById('cliente_rua').innerText}`, 10, 70);
+            doc.text(`Bairro: ${document.getElementById('cliente_bairro').innerText}`, 10, 80);
+            doc.text(`Cidade: ${document.getElementById('cliente_cidade').innerText}`, 10, 90);
+            doc.text(`Profissão: ${document.getElementById('cliente_profissao').innerText}`, 10, 100);
+            doc.text(`Escolaridade: ${document.getElementById('cliente_escolaridade').innerText}`, 10, 110);
+
+            // Salvar o arquivo PDF com o nome 'cliente_detalhes.pdf'
+            doc.save("cliente_detalhes.pdf");
+        }
+    </script>
 </body>
 </html>

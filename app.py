@@ -1,6 +1,7 @@
 from flask import render_template, redirect, url_for, request, session, flash
 from config import app, db
 from models import Cliente
+from flask import jsonify
 
 # Simulação de dados de login (usuário e senha)
 USERS = {
@@ -42,6 +43,7 @@ def logout():
 #CLIENTES
 @app.route('/clientes', methods=['GET', 'POST'])
 def clientes():
+    # Verifica se o método é POST (tentativa de cadastro)
     if request.method == 'POST':
         nome_completo = request.form['nome_completo']
         data_nascimento = request.form['data_nascimento']
@@ -53,6 +55,7 @@ def clientes():
         profissao = request.form['profissao']
         escolaridade = request.form['escolaridade']
 
+        # Cria um novo objeto cliente
         novo_cliente = Cliente(
             nome_completo=nome_completo,
             data_nascimento=data_nascimento,
@@ -66,17 +69,32 @@ def clientes():
         )
 
         try:
-            db.session.add(novo_cliente)
-            db.session.commit()
+            db.session.add(novo_cliente)  # Adiciona o cliente ao banco
+            db.session.commit()  # Confirma a transação
             flash('Cliente cadastrado com sucesso!')
-            return redirect(url_for('clientes'))
+            return redirect(url_for('clientes'))  # Redireciona para a mesma rota após o cadastro
         except Exception as e:
-            db.session.rollback()
+            db.session.rollback()  # Reverte em caso de erro
             flash(f'Erro ao cadastrar cliente: {str(e)}')
             return redirect(url_for('clientes'))
 
-    clientes = Cliente.query.all()
-    return render_template('clientes.html', clientes=clientes)
+    # Lógica de filtro (GET request) para buscar clientes pelo nome
+    else:
+        # Para o método GET, verifica se há um parâmetro de pesquisa
+        nome = request.args.get('nome', '')
+        if nome:
+            clientes = Cliente.query.filter(Cliente.nome_completo.ilike(f'%{nome}%')).all()
+        else:
+            clientes = Cliente.query.all()
+        
+    return render_template('clientes.html', clientes=clientes, filter_name=nome)
+
+
+# Rota para adicionar um novo cliente
+@app.route('/novo_cliente')
+def novo_cliente():
+    return render_template('novo_cliente.html')
+
 
 # Rota para editar um cliente
 @app.route('/editar_cliente/<int:id>', methods=['GET', 'POST'])
@@ -118,10 +136,30 @@ def deletar_cliente(id):
         flash(f'Erro ao excluir cliente: {str(e)}')
     return redirect(url_for('clientes'))
 
+# Rota para pesquisar clientes
 @app.route('/cliente/<int:id>')
 def visualizar_cliente(id):
     cliente = Cliente.query.get_or_404(id)  # Busca o cliente pelo ID ou retorna 404 se não encontrar
     return render_template('detalhes_cliente.html', cliente=cliente)
+
+@app.route('/cliente/<int:id>', methods=['GET'])
+def detalhes_cliente(id):
+    cliente = Cliente.query.get_or_404(id)
+    
+    cliente_data = {
+        'id': cliente.id,
+        'nome_completo': cliente.nome_completo,
+        'data_nascimento': cliente.data_nascimento.strftime('%d/%m/%Y'),  # Formatar a data
+        'identidade': cliente.identidade,
+        'telefone': cliente.telefone,
+        'rua': cliente.rua,
+        'bairro': cliente.bairro,
+        'cidade': cliente.cidade,
+        'profissao': cliente.profissao,
+        'escolaridade': cliente.escolaridade
+    }
+
+    return jsonify(cliente_data)
 
 #FIM CLIENTES
 #########################################
