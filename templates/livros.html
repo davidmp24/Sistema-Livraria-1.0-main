@@ -1,0 +1,69 @@
+{% extends "index.html" %}
+
+{% block content %}
+    <!-- Menu no topo -->
+    <div class="top-menu">
+        <button onclick="window.location.href='{{ url_for('novo_livro') }}'">Novo Livro</button>
+        <button id="showPesquisarButton" onclick="togglePesquisar()">Pesquisar</button>
+        <button onclick="window.location.href='{{ url_for('livros') }}'">Lista de Livros</button> 
+    </div>
+
+    <!-- Campo de Pesquisa (oculto inicialmente) -->
+    <div id="pesquisarForm" class="hidden">
+        <form action="{{ url_for('livros') }}" method="GET">
+            <input type="text" name="titulo" placeholder="Pesquisar por Título" value="{{ request.args.get('titulo', '') }}">
+            <button type="submit">Pesquisar</button>
+        </form>
+    </div>
+
+    <!-- Lista de Livros -->
+    <h2>Lista de Livros Cadastrados</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Autor</th>
+                <th>Ano</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for livro in livros %}
+            <tr>
+                <td><a href="{{ url_for('visualizar_livro', id=livro.id) }}" target="_blank">{{ livro.id }}</a></td>
+                <td><a href="{{ url_for('visualizar_livro', id=livro.id) }}" target="_blank">{{ livro.titulo }}</a></td>
+                <td>{{ livro.autor }}</td>
+                <td>{{ livro.ano }}</td>
+                <td>
+                    <a href="{{ url_for('editar_livro', id=livro.id) }}">Editar</a>
+                    <form action="{{ url_for('deletar_livro', id=livro.id) }}" method="POST" style="display:inline;">
+                        <button type="submit" onclick="return confirmarExclusao()">Excluir</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        function confirmarExclusao() {
+            return confirm("Você realmente deseja excluir este livro?");
+        }
+
+        function togglePesquisar() {
+            var pesquisarForm = document.getElementById("pesquisarForm");
+            var button = document.getElementById("showPesquisarButton");
+
+            if (pesquisarForm.classList.contains("hidden")) {
+                pesquisarForm.classList.remove("hidden");
+                button.innerText = "Cancelar Pesquisa";
+            } else {
+                pesquisarForm.classList.add("hidden");
+                button.innerText = "Pesquisar";
+            }
+        }
+    </script>
+
+{% endblock %}

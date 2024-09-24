@@ -1,0 +1,143 @@
+{% extends "index.html" %}
+
+{% block content %}
+    <h1>Novo Livro</h1>
+
+    <!-- Botões de ação -->
+    <button onclick="mostrarBusca()">Buscar</button>
+    <button onclick="mostrarCadastroManual()">Cadastro Manual</button>
+
+    <!-- Campo de pesquisa (inicialmente oculto) -->
+    <div id="pesquisaContainer" style="display:none; margin-top: 20px;">
+        <label for="titulo">Título:</label>
+        <input type="text" id="titulo" name="titulo" placeholder="Digite o título" required>
+        <button type="button" onclick="buscarLivroGoogleBooks()">Buscar</button>
+    </div>
+
+    <!-- Tabela de resultados (inicialmente oculta) -->
+    <div id="resultadosContainer" style="display:none; margin-top: 20px;">
+        <h2>Resultados da Pesquisa</h2>
+        <table id="resultadosTabela" border="1">
+            <thead>
+                <tr>
+                    <th>Título</th>
+                    <th>Autor(es)</th>
+                    <th>Ano</th>
+                    <th>ISBN</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Os resultados serão inseridos aqui dinamicamente -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Formulário de cadastro manual (inicialmente oculto) -->
+    <div id="cadastroManualContainer" style="display:none; margin-top: 20px;">
+        <form method="POST" action="{{ url_for('criar_livro') }}">
+            <label for="autor">Autor:</label>
+            <input type="text" id="autor" name="autor" required>
+
+            <label for="ano">Ano de Publicação:</label>
+            <input type="number" id="ano" name="ano" required>
+
+            <label for="isbn">ISBN:</label>
+            <input type="text" id="isbn" name="isbn">
+
+            <button type="submit">Cadastrar Livro</button>
+            <button type="button" onclick="window.location.href='{{ url_for('livros') }}'">Cancelar</button>
+        </form>
+    </div>
+
+    <script>
+        function mostrarBusca() {
+            document.getElementById("pesquisaContainer").style.display = "block";
+            document.getElementById("cadastroManualContainer").style.display = "none"; // Oculta o cadastro manual
+            document.getElementById("resultadosContainer").style.display = "none"; // Oculta resultados
+            document.getElementById("resultadosTabela").getElementsByTagName('tbody')[0].innerHTML = ""; // Limpa resultados anteriores
+        }
+
+        function mostrarCadastroManual() {
+            document.getElementById("cadastroManualContainer").style.display = "block";
+            document.getElementById("pesquisaContainer").style.display = "none"; // Oculta a pesquisa
+            document.getElementById("resultadosContainer").style.display = "none"; // Oculta resultados
+        }
+
+        function buscarLivroGoogleBooks() {
+            var titulo = document.getElementById('titulo').value;
+
+            if (titulo.length > 0) {
+                fetch(`https://www.googleapis.com/books/v1/volumes?q=${titulo}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const resultadosTabelaBody = document.getElementById('resultadosTabela').getElementsByTagName('tbody')[0];
+                        resultadosTabelaBody.innerHTML = ""; // Limpa resultados anteriores
+
+                        if (data.items && data.items.length > 0) {
+                            document.getElementById("resultadosContainer").style.display = "block"; // Exibe a tabela
+
+                            data.items.forEach(item => {
+                                const livro = item.volumeInfo;
+                                const row = resultadosTabelaBody.insertRow();
+
+                                // Adiciona células à nova linha
+                                row.insertCell(0).innerText = livro.title || 'N/A';
+                                row.insertCell(1).innerText = livro.authors ? livro.authors.join(', ') : 'N/A';
+                                row.insertCell(2).innerText = livro.publishedDate ? livro.publishedDate.substring(0, 4) : 'N/A';
+                                row.insertCell(3).innerText = livro.industryIdentifiers ? livro.industryIdentifiers[0].identifier : 'N/A';
+
+                                // Célula de ação
+                                const acaoCell = row.insertCell(4);
+                                const adicionarButton = document.createElement('button');
+                                adicionarButton.innerText = "Adicionar";
+                                adicionarButton.onclick = function() {
+                                    // Função para salvar o livro no banco de dados
+                                    adicionarLivro(livro);
+                                };
+                                acaoCell.appendChild(adicionarButton);
+                            });
+                        } else {
+                            alert("Nenhum livro encontrado com esse título.");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Erro ao buscar o livro na API do Google Books:", error);
+                    });
+            } else {
+                alert("Digite um título para buscar.");
+            }
+        }
+
+        function adicionarLivro(livro) {
+            // Cria um objeto para enviar ao servidor
+            const dadosLivro = {
+                titulo: livro.title || '',
+                autor: livro.authors ? livro.authors.join(', ') : '',
+                ano: livro.publishedDate ? livro.publishedDate.substring(0, 4) : '',
+                isbn: livro.industryIdentifiers ? livro.industryIdentifiers[0].identifier : ''
+            };
+
+            // Envia os dados para o servidor
+            fetch("{{ url_for('criar_livro') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(dadosLivro)
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert("Livro adicionado com sucesso!");
+                } else {
+                    alert("Erro ao adicionar livro. Tente novamente.");
+                }
+            })
+            .catch(error => {
+                console.error("Erro ao adicionar livro:", error);
+                alert("Erro ao adicionar livro. Tente novamente.");
+            });
+        }
+    </script>
+
+{% endblock %}

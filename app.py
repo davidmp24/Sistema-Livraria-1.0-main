@@ -2,6 +2,7 @@ from flask import render_template, redirect, url_for, request, session, flash
 from config import app, db
 from models import Cliente
 from flask import jsonify
+from datetime import datetime
 
 # Simulação de dados de login (usuário e senha)
 USERS = {
@@ -170,6 +171,48 @@ def livros():
     if 'username' not in session:
         return redirect(url_for('login'))
     return render_template('livros.html')
+
+#Rota para novo livro
+@app.route('/novo_livro', methods=['GET', 'POST'])
+def novo_livro():
+    if request.method == 'POST':
+        # Pegar os dados do formulário
+        titulo = request.form['titulo']
+        autor = request.form['autor']
+        editora = request.form['editora']
+        ano = request.form['ano']
+        isbn = request.form['isbn']
+
+        # Código para salvar o livro no banco de dados
+        novo_livro = Livro(titulo=titulo, autor=autor, editora=editora, ano=ano, isbn=isbn)
+        db.session.add(novo_livro)
+        db.session.commit()
+
+        return redirect(url_for('livros'))
+
+    return render_template('novo_livro.html')
+
+# Rota para criar novo livro
+@app.route('/novo_livro', methods=['GET', 'POST'])
+def criar_livro():
+    if request.method == 'POST':
+        # Pegar os dados do formulário
+        titulo = request.form['titulo']
+        autor = request.form['autor']
+        ano = request.form['ano']
+        isbn = request.form['isbn']
+
+        # Código para salvar o livro no banco de dados
+        novo_livro = Livro(titulo=titulo, autor=autor, ano=ano, isbn=isbn)
+        db.session.add(novo_livro)
+        db.session.commit()
+        data = request.get_json()
+        return jsonify(success=True), 201
+    return redirect(url_for('livros'))
+    print(request.form)
+
+    return render_template('novo_livro.html')
+
 
 #FIM LIVROS
 #########################################

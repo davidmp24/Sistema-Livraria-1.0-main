@@ -38,6 +38,17 @@
             <option value="Não Estudando" {% if cliente.escolaridade == 'Não Estudando' %}selected{% endif %}>Não está estudando</option>
         </select>
 
-        <button type="submit">Atualizar Cliente</button>
+        <!-- Ações do formulário -->
+        <div class="form-actions">
+            <button type="submit">Atualizar Cliente</button>
+            <button type="button" onclick="cancelar()">Cancelar</button>
+        </div>
     </form>
+
+    <script>
+        function cancelar() {
+            window.location.href = "{{ url_for('clientes') }}"; // Redireciona para a página de clientes
+        }
+    </script>
+
 {% endblock %}
