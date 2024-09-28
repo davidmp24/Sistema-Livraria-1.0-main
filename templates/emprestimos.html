@@ -1,0 +1,65 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<h1 class="h2">Gerenciar Empréstimos</h1>
+
+<!-- Formulário para cadastrar um novo empréstimo -->
+<form method="POST">
+    <div class="mb-3">
+        <label for="cliente_id" class="form-label">Cliente:</label>
+        <select name="cliente_id" id="cliente_id" class="form-select" required>
+            <option value="" disabled selected>Selecione um cliente</option>
+            {% for cliente in clientes %}
+                <option value="{{ cliente.id }}">{{ cliente.nome_completo }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label for="livro_id" class="form-label">Livros:</label>
+        <select name="livro_id" id="livro_id" class="form-select" required>
+            <option value="" disabled selected>Selecione um livro</option>
+            {% for livro in livros %}
+                <option value="{{ livro.id }}">{{ livro.titulo }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label for="data_emprestimo" class="form-label">Data do Empréstimo:</label>
+        <input type="date" name="data_emprestimo" id="data_emprestimo" class="form-control" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Cadastrar Empréstimo</button>
+</form>
+
+<!-- Tabela para exibir os empréstimos existentes -->
+<h2 class="h4 mt-5">Empréstimos Cadastrados</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Livro</th>
+            <th>Data do Empréstimo</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for emprestimo in emprestimos %}
+            <tr>
+                <td>{{ emprestimo.id }}</td>
+                <td>{{ emprestimo.cliente.nome_completo }}</td>
+                <td>{{ emprestimo.livros.titulo }}</td>
+                <td>{{ emprestimo.data_emprestimo.strftime('%Y-%m-%d') }}</td>
+                <td>
+                    <form action="{{ url_for('deletar_emprestimo', id=emprestimo.id) }}" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm">Deletar</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
