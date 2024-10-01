@@ -5,8 +5,6 @@ from models import Cliente, Livro  # Certifique-se de que Livro está importado 
 from datetime import datetime
 import os
 from werkzeug.utils import secure_filename
-from config import app, db
-from models import Livro
 
 # Simulação de dados de login (usuário e senha)
 USERS = {
@@ -163,11 +161,37 @@ def detalhes_cliente(id):
 def livros():
     if 'username' not in session:
         return redirect(url_for('login'))
-    return render_template('livros.html')
+
+    # Recupera todos os livros do banco de dados
+    livros = Livro.query.all()
+
+    return render_template('livros.html', livros=livros)
+
+
+@app.route('/livro/<int:id>')
+def visualizar_livro(id):
+    livro = Livro.query.get_or_404(id)
+    return render_template('detalhes_livro.html', livro=livro)
+
 
 # Define o diretório para salvar as capas dos livros
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+@app.route('/editar_livro/<int:id>', methods=['GET', 'POST'])
+def editar_livro(id):
+    livro = Livro.query.get_or_404(id)
+    # Aqui você pode adicionar a lógica para editar o livro
+    return render_template('editar_livro.html', livro=livro)
+
+@app.route('/deletar_livro/<int:id>', methods=['POST'])
+def deletar_livro(id):
+    livro = Livro.query.get_or_404(id)  # Busca o livro pelo ID
+    db.session.delete(livro)  # Deleta o livro da sessão
+    db.session.commit()  # Confirma a transação
+    return redirect(url_for('livros'))  # Redireciona para a lista de livros
+
+
 
 # Rota para novo livro
 @app.route('/novo_livro', methods=['GET', 'POST'])
