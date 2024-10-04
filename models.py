@@ -20,7 +20,7 @@ class Livro(db.Model):
     titulo = db.Column(db.String(100), nullable=False)
     autor = db.Column(db.String(100), nullable=False)
     editora = db.Column(db.String(100), nullable=False)
-    idade_leitura = db.Column(db.String(50), nullable=True)
+    idade_leitura = db.Column(db.String(100), nullable=False)
     isbn = db.Column(db.String(20), nullable=False)
     ano = db.Column(db.Integer, nullable=False)
     num_paginas = db.Column(db.Integer, nullable=False)

@@ -1,145 +1,165 @@
 {% extends "index.html" %}
 
 {% block content %}
-    <h1>Novo Livro</h1>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/novo_livro.css') }}">
 
-    <!-- Botões de ação -->
-    <button onclick="mostrarBusca()">Buscar</button>
-    <button onclick="mostrarCadastroManual()">Cadastro Manual</button>
+<h1>Cadastrar Novo Livro</h1>
 
-    <!-- Campo de pesquisa (inicialmente oculto) -->
-    <div id="pesquisaContainer" style="display:none; margin-top: 20px;">
-        <label for="tituloBusca">Título:</label>
-        <input type="text" id="tituloBusca" name="tituloBusca" placeholder="Digite o título" required>
-        <button type="button" onclick="buscarLivroGoogleBooks()">Buscar</button>
+<form action="{{ url_for('novo_livro') }}" method="POST">
+    <div class="form-group">
+        <label for="titulo">Título do Livro:</label>
+        <div class="input-group">
+            <input type="text" id="titulo" name="titulo" class="form-control" required>
+            <button type="button" id="buscar-livro" class="btn btn-secondary">Buscar</button>
+        </div>
     </div>
 
-    <!-- Tabela de resultados (inicialmente oculta) -->
-    <div id="resultadosContainer" style="display:none; margin-top: 20px;">
-        <h2>Resultados da Pesquisa</h2>
-        <table id="resultadosTabela" border="1">
-            <thead>
-                <tr>
-                    <th>Título</th>
-                    <th>Autor(es)</th>
-                    <th>Ano</th>
-                    <th>ISBN</th>
-                    <th>Ação</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Os resultados serão inseridos aqui dinamicamente -->
-            </tbody>
-        </table>
+    <!-- Tabela de Resultados Oculta Inicialmente -->
+    <div id="resultados-busca" style="display: none; margin-top: 20px;">
+        <h3>Resultados da Busca</h3>
+        <ul id="lista-resultados" class="list-group"></ul>
     </div>
 
-    <!-- Formulário de cadastro manual (inicialmente oculto) -->
-    <div id="cadastroManualContainer" style="display:none; margin-top: 20px;">
-        <form method="POST" action="{{ url_for('criar_livro') }}">
-            <label for="titulo">Título:</label>
-            <input type="text" id="titulo" name="titulo" required>
-
-            <label for="autor">Autor:</label>
-            <input type="text" id="autor" name="autor" required>
-
-            <label for="ano">Ano de Publicação:</label>
-            <input type="number" id="ano" name="ano" required>
-
-            <label for="isbn">ISBN:</label>
-            <input type="text" id="isbn" name="isbn">
-
-            <button type="submit">Cadastrar Livro</button>
-            <button type="button" onclick="window.location.href='{{ url_for('livros') }}'">Cancelar</button>
-        </form>
+    <div class="form-group">
+        <label for="autor">Autor:</label>
+        <input type="text" id="autor" name="autor" class="form-control" required>
     </div>
 
-    <script>
-        function mostrarBusca() {
-            document.getElementById("pesquisaContainer").style.display = "block";
-            document.getElementById("cadastroManualContainer").style.display = "none"; // Oculta o cadastro manual
-            document.getElementById("resultadosContainer").style.display = "none"; // Oculta resultados
-            document.getElementById("resultadosTabela").getElementsByTagName('tbody')[0].innerHTML = ""; // Limpa resultados anteriores
+    <div class="form-group">
+        <label for="editora">Editora:</label>
+        <input type="text" id="editora" name="editora" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label for="idade_leitura">Gênero:</label>
+        <input type="text" id="idade_leitura" name="idade_leitura" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label for="isbn">ISBN:</label>
+        <input type="text" id="isbn" name="isbn" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label for="ano">Ano de Publicação:</label>
+        <input type="text" id="ano" name="ano" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label for="num_paginas">Número de Páginas:</label>
+        <input type="number" id="num_paginas" name="num_paginas" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label for="valor">Valor (R$):</label>
+        <input type="number" id="valor" name="valor" step="0.01" class="form-control" required>
+    </div>
+
+    <!-- Campo oculto para armazenar a URL da capa -->
+    <input type="hidden" id="capa_livro" name="capa_livro">
+
+    <button type="submit" class="btn btn-success">Cadastrar Livro</button>
+</form>
+
+<!-- Importar biblioteca de jQuery (se necessário) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    // Função para buscar o título do livro usando a API do Google Books
+    document.getElementById('buscar-livro').addEventListener('click', function() {
+        var query = document.getElementById('titulo').value;
+
+        // Se o campo de título não estiver vazio, faça a busca
+        if (query) {
+            fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    var resultadosBusca = document.getElementById('resultados-busca');
+                    var listaResultados = document.getElementById('lista-resultados');
+                    listaResultados.innerHTML = ''; // Limpar resultados anteriores
+
+                    if (data.items && data.items.length > 0) {
+                        // Exibe a tabela de resultados
+                        resultadosBusca.style.display = 'block';
+
+                        data.items.forEach(item => {
+                            var info = item.volumeInfo;
+
+                            // Convertendo valor do preço para reais (caso haja preço disponível)
+                            var precoReais = item.saleInfo && item.saleInfo.retailPrice ? (item.saleInfo.retailPrice.amount * 5.0).toFixed(2) : 'Indisponível';
+
+                            var listItem = document.createElement('li');
+                            listItem.classList.add('list-group-item');
+
+                            listItem.innerHTML = `
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <img src="${info.imageLinks ? info.imageLinks.thumbnail : '#'}" alt="Capa do Livro" class="img-fluid">
+                                    </div>
+                                    <div class="col-md-9">
+                                        <strong>Título:</strong> ${info.title} <br>
+                                        <strong>Autor:</strong> ${info.authors ? info.authors.join(', ') : 'Desconhecido'} <br>
+                                        <strong>Editora:</strong> ${info.publisher || 'Desconhecida'} <br>
+                                        <strong>Gênero:</strong> ${info.categories ? info.categories.join(', ') : 'Indisponível'} <br>
+                                        <strong>ISBN:</strong> ${info.industryIdentifiers ? info.industryIdentifiers[0].identifier : 'Indisponível'} <br>
+                                        <strong>Ano:</strong> ${info.publishedDate || 'Desconhecido'} <br>
+                                        <strong>Número de Páginas:</strong> ${info.pageCount || 'Indisponível'} <br>
+                                        <strong>Valor:</strong> R$ ${precoReais} <br>
+                                        <button type="button" class="selecionar-livro btn btn-primary mt-2"
+                                            data-titulo="${info.title}"
+                                            data-autor="${info.authors ? info.authors.join(', ') : ''}"
+                                            data-editora="${info.publisher || ''}"
+                                            data-idade_leitura="${info.categories ? info.categories.join(', ') : ''}"
+                                            data-ano="${info.publishedDate || ''}"
+                                            data-isbn="${info.industryIdentifiers ? info.industryIdentifiers[0].identifier : ''}"
+                                            data-paginas="${info.pageCount || ''}"
+                                            data-valor="${precoReais}"
+                                            data-capa="${info.imageLinks ? info.imageLinks.thumbnail : ''}">Selecionar</button>
+                                    </div>
+                                </div>
+                            `;
+                            listaResultados.appendChild(listItem);
+                        });
+                    } else {
+                        // Se não houver resultados, esconda a tabela e mostre uma mensagem
+                        resultadosBusca.style.display = 'none';
+                        alert('Nenhum resultado encontrado.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar o livro:', error);
+                    alert('Erro ao buscar o livro.');
+                });
         }
+    });
 
-        function mostrarCadastroManual() {
-            document.getElementById("cadastroManualContainer").style.display = "block";
-            document.getElementById("pesquisaContainer").style.display = "none"; // Oculta a pesquisa
-            document.getElementById("resultadosContainer").style.display = "none"; // Oculta resultados
+    // Função para preencher os campos ao clicar em "Selecionar"
+    document.getElementById('lista-resultados').addEventListener('click', function(event) {
+        if (event.target.classList.contains('selecionar-livro')) {
+            var titulo = event.target.getAttribute('data-titulo');
+            var autor = event.target.getAttribute('data-autor');
+            var editora = event.target.getAttribute('data-editora');
+            var idade_leitura = event.target.getAttribute('data-idade_leitura');
+            var ano = event.target.getAttribute('data-ano');
+            var isbn = event.target.getAttribute('data-isbn');
+            var paginas = event.target.getAttribute('data-paginas');
+            var valor = event.target.getAttribute('data-valor');
+            var capa = event.target.getAttribute('data-capa');
+
+            // Preencher os campos do formulário com os dados selecionados
+            document.getElementById('titulo').value = titulo;
+            document.getElementById('autor').value = autor;
+            document.getElementById('editora').value = editora;
+            document.getElementById('idade_leitura').value = idade_leitura;
+            document.getElementById('ano').value = ano;
+            document.getElementById('isbn').value = isbn;
+            document.getElementById('num_paginas').value = paginas;
+            document.getElementById('valor').value = valor;
+            document.getElementById('capa_livro').value = capa;  // Armazenar a URL da capa
+
+            // Esconder os resultados após a seleção
+            document.getElementById('resultados-busca').style.display = 'none';
         }
-
-        function buscarLivroGoogleBooks() {
-            var titulo = document.getElementById('tituloBusca').value;
-
-            if (titulo.length > 0) {
-                fetch(`https://www.googleapis.com/books/v1/volumes?q=${titulo}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        const resultadosTabelaBody = document.getElementById('resultadosTabela').getElementsByTagName('tbody')[0];
-                        resultadosTabelaBody.innerHTML = ""; // Limpa resultados anteriores
-
-                        if (data.items && data.items.length > 0) {
-                            document.getElementById("resultadosContainer").style.display = "block"; // Exibe a tabela
-
-                            data.items.forEach(item => {
-                                const livro = item.volumeInfo;
-                                const row = resultadosTabelaBody.insertRow();
-
-                                // Adiciona células à nova linha
-                                row.insertCell(0).innerText = livro.title || 'N/A';
-                                row.insertCell(1).innerText = livro.authors ? livro.authors.join(', ') : 'N/A';
-                                row.insertCell(2).innerText = livro.publishedDate ? livro.publishedDate.substring(0, 4) : 'N/A';
-                                row.insertCell(3).innerText = livro.industryIdentifiers ? livro.industryIdentifiers[0].identifier : 'N/A';
-
-                                // Célula de ação
-                                const acaoCell = row.insertCell(4);
-                                const adicionarButton = document.createElement('button');
-                                adicionarButton.innerText = "Adicionar";
-                                adicionarButton.onclick = function() {
-                                    // Função para salvar o livro no banco de dados
-                                    adicionarLivro(livro);
-                                };
-                                acaoCell.appendChild(adicionarButton);
-                            });
-                        } else {
-                            alert("Nenhum livro encontrado com esse título.");
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Erro ao buscar o livro na API do Google Books:", error);
-                    });
-            } else {
-                alert("Digite um título para buscar.");
-            }
-        }
-
-        function adicionarLivro(livro) {
-            // Cria um objeto para enviar ao servidor
-            const dadosLivro = {
-                titulo: livro.title || '',
-                autor: livro.authors ? livro.authors.join(', ') : '',
-                ano: livro.publishedDate ? livro.publishedDate.substring(0, 4) : '',
-                isbn: livro.industryIdentifiers ? livro.industryIdentifiers[0].identifier : ''
-            };
-
-            // Envia os dados para o servidor
-            fetch("{{ url_for('criar_livro') }}", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(dadosLivro)
-            })
-            .then(response => {
-                if (response.ok) {
-                    alert("Livro adicionado com sucesso!");
-                } else {
-                    alert("Erro ao adicionar livro. Tente novamente.");
-                }
-            })
-            .catch(error => {
-                console.error("Erro ao adicionar livro:", error);
-                alert("Erro ao adicionar livro. Tente novamente.");
-            });
-        }
-    </script>
+    });
+</script>
 {% endblock %}

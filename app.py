@@ -201,34 +201,29 @@ def novo_livro():
         titulo = request.form['titulo']
         autor = request.form['autor']
         editora = request.form['editora']
-        idade_leitura = request.form.get('idade_leitura')
+        idade_leitura = request.form['idade_leitura']  # Atualizando 'idade_leitura' para 'genero'
         isbn = request.form['isbn']
         ano = request.form['ano']
         num_paginas = request.form['num_paginas']
         valor = request.form['valor']
+        
+        # Pegar a URL da capa do livro (enviada via campo oculto no formulário)
+        capa_livro_url = request.form.get('capa_livro')  # Buscando a URL da capa
 
-        # Verifica se há uma capa de livro enviada
-        capa_livro = request.files['capa_livro']
-        capa_livro_filename = None
-        if capa_livro:
-            # Salva a capa com um nome seguro
-            capa_livro_filename = secure_filename(capa_livro.filename)
-            capa_livro.save(os.path.join(app.config['UPLOAD_FOLDER'], capa_livro_filename))
-
-        # Cria um novo objeto livro com os dados do formulário
+        # Criar um novo objeto livro com os dados do formulário
         novo_livro = Livro(
             titulo=titulo,
             autor=autor,
             editora=editora,
-            idade_leitura=idade_leitura,
+            idade_leitura=idade_leitura,  # Atualizado para 'genero'
             isbn=isbn,
             ano=ano,
             num_paginas=num_paginas,
             valor=valor,
-            capa_livro=capa_livro_filename  # Adiciona a capa ao livro
+            capa_livro=capa_livro_url  # Armazena a URL da capa do livro
         )
 
-        # Adiciona e comita no banco de dados
+        # Adicionar e comitar no banco de dados
         db.session.add(novo_livro)
         db.session.commit()
 
