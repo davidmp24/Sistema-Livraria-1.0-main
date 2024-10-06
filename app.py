@@ -178,22 +178,44 @@ def visualizar_livro(id):
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# Rota para editar o livro
 @app.route('/editar_livro/<int:id>', methods=['GET', 'POST'])
 def editar_livro(id):
     livro = Livro.query.get_or_404(id)
-    # Aqui você pode adicionar a lógica para editar o livro
+    
+    if request.method == 'POST':
+        # Atualiza os dados do livro com base nos valores do formulário
+        livro.titulo = request.form['titulo']
+        livro.autor = request.form['autor']
+        livro.editora = request.form['editora']
+        livro.idade_leitura = request.form['idade_leitura']  # Atualizado de 'idade_leitura' para 'genero'
+        livro.isbn = request.form['isbn']
+        livro.ano = request.form['ano']
+        livro.num_paginas = request.form['num_paginas']
+        livro.valor = request.form['valor']
+        livro.capa_livro = request.form.get('capa_livro')  # Atualiza a URL da capa do livro
+
+        try:
+            db.session.commit()  # Salvar as alterações no banco de dados
+            flash('Livro atualizado com sucesso!', 'success')
+            return redirect(url_for('livros'))  # Redireciona para a página de listagem de livros
+        except SQLAlchemyError as e:
+            db.session.rollback()  # Desfaz as alterações em caso de erro
+            flash(f'Erro ao atualizar o livro: {str(e)}', 'danger')
+            return redirect(url_for('editar_livro', id=id))
+
     return render_template('editar_livro.html', livro=livro)
 
+# Rota para deletar o livro
 @app.route('/deletar_livro/<int:id>', methods=['POST'])
 def deletar_livro(id):
-    livro = Livro.query.get_or_404(id)  # Busca o livro pelo ID
-    db.session.delete(livro)  # Deleta o livro da sessão
-    db.session.commit()  # Confirma a transação
-    return redirect(url_for('livros'))  # Redireciona para a lista de livros
+    livro = Livro.query.get_or_404(id)
+    db.session.delete(livro)
+    db.session.commit()
+    return redirect(url_for('livros'))
 
 
-
-# Rota para novo livro
+# Rota para criar um novo livro
 @app.route('/novo_livro', methods=['GET', 'POST'])
 def novo_livro():
     if request.method == 'POST':
@@ -201,7 +223,7 @@ def novo_livro():
         titulo = request.form['titulo']
         autor = request.form['autor']
         editora = request.form['editora']
-        idade_leitura = request.form['idade_leitura']  # Atualizando 'idade_leitura' para 'genero'
+        idade_leitura = request.form.get('idade_leitura')  # Atualizado de 'idade_leitura' para 'genero'
         isbn = request.form['isbn']
         ano = request.form['ano']
         num_paginas = request.form['num_paginas']
@@ -231,10 +253,37 @@ def novo_livro():
 
     return render_template('novo_livro.html')
 
+
+# Rota para atualizar o livro no banco de dados
+@app.route('/atualizar_livro/<int:livro_id>', methods=['POST'])
+def atualizar_livro(livro_id):
+    livro = Livro.query.get_or_404(livro_id)
+
+    # Atualizar os dados do livro com base no formulário
+    livro.titulo = request.form['titulo']
+    livro.autor = request.form['autor']
+    livro.editora = request.form['editora']
+    livro.idade_leitura = request.form['idade_leitura']
+    livro.isbn = request.form['isbn']
+    livro.ano = request.form['ano']
+    livro.num_paginas = request.form['num_paginas']
+    livro.valor = request.form['valor']
+
+    try:
+        db.session.commit()  # Salvar as alterações no banco de dados
+        flash('Livro atualizado com sucesso!', 'success')
+        return redirect(url_for('livros'))  # Redirecionar para a página de listagem de livros
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        flash(f'Erro ao atualizar o livro: {str(e)}', 'danger')
+        return redirect(url_for('editar_livro', livro_id=livro_id))
+
+
 # FIM LIVROS
 #########################################
 
 # CONFIGURAÇÃO
+
 @app.route('/configuracao')
 def configuracao():
     if 'username' not in session:

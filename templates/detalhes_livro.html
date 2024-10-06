@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Livro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+    <h1>Detalhes do Livro</h1>
+    <p><strong>Título:</strong> {{ livro.titulo }}</p>
+    <p><strong>Autor:</strong> {{ livro.autor }}</p>
+    <p><strong>Editora:</strong> {{ livro.editora }}</p>
+    <p><strong>Gênero:</strong> {{ livro.idade_leitura }}</p>
+    <p><strong>ISBN:</strong> {{ livro.isbn }}</p>
+    <p><strong>Ano:</strong> {{ livro.ano }}</p>
+    <p><strong>Páginas:</strong> {{ livro.num_paginas }}</p>
+    <p><strong>Valor:</strong> {{ livro.valor }}</p>
+    {% if livro.capa_livro %}
+        <img src="{{ url_for('static', filename='uploads/' ~ livro.capa_livro) }}" alt="Capa do livro">
+    {% endif %}
+       <!-- Botão Fechar -->
+    <button onclick="fecharJanela()">Voltar</button>
+
+    <!-- Botão Salvar como PDF -->
+    <button onclick="salvarComoPDF()">Salvar</button>
+
+    <script>
+        function fecharJanela() {
+            window.close();
+        }
+
+        function salvarComoPDF() {
+            const { jsPDF } = window.jspdf;
+
+            // Criar uma nova instância do jsPDF
+            const doc = new jsPDF();
+
+            // Adicionar os dados do livro no PDF
+            doc.text("Detalhes do Livro", 10, 10);
+            doc.text(`ID: ${document.getElementById('livro_id').innerText}`, 10, 20);
+            doc.text(`Título: ${document.getElementById('livro_titulo').innerText}`, 10, 30);
+            doc.text(`Autor: ${document.getElementById('livro_autor').innerText}`, 10, 40);
+            doc.text(`Editora: ${document.getElementById('livro_editora').innerText}`, 10, 50);
+            doc.text(`ISBN: ${document.getElementById('livro_isbn').innerText}`, 10, 60);
+            doc.text(`Ano de Publicação: ${document.getElementById('livro_ano').innerText}`, 10, 70);
+            doc.text(`Número de Páginas: ${document.getElementById('livro_paginas').innerText}`, 10, 80);
+            doc.text(`Valor: ${document.getElementById('livro_valor').innerText}`, 10, 90);
+            doc.text(`Gênero: ${document.getElementById('livro_idade_leitura').innerText}`, 10, 100);
+
+            // Salvar o arquivo PDF com o nome 'livro_detalhes.pdf'
+            doc.save("detalhes_livro.pdf");
+    }
+</script>
+</body>
+</html>
