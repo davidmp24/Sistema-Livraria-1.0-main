@@ -1,3 +1,4 @@
+/* Estilos gerais */
 * {
     margin: 0;
     padding: 0;
@@ -7,11 +8,12 @@
 body {
     font-family: Arial, sans-serif;
     background-color: #f9f9f9; /* Cor de fundo semelhante ao ChatGPT */
-    display: flex;
     height: 100vh;
+    display: flex;
 }
 
-.container {
+/* Layout principal */
+.container-fluid {
     display: flex;
     width: 100%;
     height: 100%;
@@ -19,7 +21,7 @@ body {
 
 .sidebar {
     width: 240px;
-    background-color: #333; /* Cor do menu lateral */
+    background-color: #343a40; /* Cor escura do Bootstrap para sidebar */
     color: #fff;
     padding: 20px;
     position: fixed;
@@ -27,50 +29,41 @@ body {
     overflow: auto;
 }
 
-.sidebar ul {
-    list-style: none;
+.sidebar .nav {
+    flex-direction: column;
 }
 
-.sidebar ul li {
-    margin: 20px 0;
-}
-
-.sidebar ul li a {
-    color: #fff;
-    text-decoration: none;
+.sidebar .nav-link {
+    color: #ddd;
     font-size: 16px;
-    display: block;
     padding: 10px;
     border-radius: 5px;
 }
 
-.sidebar ul li a:hover {
-    background-color: #444; /* Cor de destaque do item do menu */
+.sidebar .nav-link:hover {
+    background-color: #495057; /* Cor de destaque ao passar o mouse */
 }
 
 .content {
     margin-left: 240px;
     padding: 20px;
     flex: 1;
-    background-color: #fff; /* Cor de fundo da área principal */
-    border-left: 1px solid #ddd; /* Linha separadora entre o menu e o conteúdo */
+    background-color: #f8f9fa; /* Fundo claro do Bootstrap para área de conteúdo */
+    border-left: 1px solid #ddd; /* Linha de separação entre menu e conteúdo */
+    overflow-y: auto;
 }
 
-.content h1 {
-    color: #333;
-}
-
-.content p {
-    font-size: 16px;
-    color: #666;
-}
-
-/* Estilos do formulário de cadastro */
-
+/* Estilos para o formulário de cadastro */
 form {
     margin: 20px 0;
     display: flex;
     flex-direction: column;
+    width: 100%;
+    max-width: 600px;
+    background-color: #fff; /* Fundo branco para o formulário */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil ao redor do formulário */
 }
 
 form label {
@@ -85,11 +78,9 @@ form input, form select {
     border: 1px solid #ddd;
     border-radius: 4px;
     width: 100%;
-    max-width: 400px;
 }
 
 form button {
-    width: 200px;
     padding: 10px;
     background-color: #333;
     color: #fff;
@@ -103,8 +94,7 @@ form button:hover {
     background-color: #444;
 }
 
-/* Estilos da tabela de clientes */
-
+/* Estilos para a tabela de clientes */
 table {
     width: 100%;
     border-collapse: collapse;

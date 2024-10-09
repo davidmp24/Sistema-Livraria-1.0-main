@@ -2,26 +2,34 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Livraria</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="container">
+    <div class="container-fluid">
         <aside class="sidebar">
-            <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/clientes">Clientes</a></li>
-                <li><a href="/livros">Livros</a></li>
-                <li><a href="/configuracao">Configuração</a></li>
+            <ul class="nav flex-column">
+                <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="/clientes">Clientes</a></li>
+                <li class="nav-item"><a class="nav-link" href="/livros">Livros</a></li>
+                <li class="nav-item"><a class="nav-link" href="/configuracao">Configuração</a></li>
             </ul>
         </aside>
         <main class="content">
             {% block content %}
-            <h1>Bem-vindo à Sistema Livraria!</h1>
+            <h1>Bem-vindo ao Sistema Livraria!</h1>
             <p>Selecione uma das opções no menu ao lado.</p>
             {% endblock %}
         </main>
     </div>
+    
+
+    <!-- Bootstrap JS, Popper.js, e jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
