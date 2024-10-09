@@ -1,31 +1,28 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalhes do Cliente</title>
+{% extends "index.html" %}
+
+{% block content %}
+    <div class="container my-4">
+        <h1>Detalhes do Cliente</h1>
+
+        <p><strong>ID:</strong> <span id="cliente_id">{{ cliente.id }}</span></p>
+        <p><strong>Nome Completo:</strong> <span id="cliente_nome">{{ cliente.nome_completo }}</span></p>
+        <p><strong>Data de Nascimento:</strong> <span id="cliente_data_nascimento">{{ cliente.data_nascimento }}</span></p>
+        <p><strong>Identidade:</strong> <span id="cliente_identidade">{{ cliente.identidade }}</span></p>
+        <p><strong>Telefone:</strong> <span id="cliente_telefone">{{ cliente.telefone }}</span></p>
+        <p><strong>Rua:</strong> <span id="cliente_rua">{{ cliente.rua }}</span></p>
+        <p><strong>Bairro:</strong> <span id="cliente_bairro">{{ cliente.bairro }}</span></p>
+        <p><strong>Cidade:</strong> <span id="cliente_cidade">{{ cliente.cidade }}</span></p>
+        <p><strong>Profissão:</strong> <span id="cliente_profissao">{{ cliente.profissao }}</span></p>
+        <p><strong>Escolaridade:</strong> <span id="cliente_escolaridade">{{ cliente.escolaridade }}</span></p>
+
+        <!-- Botão Fechar -->
+        <button class="btn btn-secondary" onclick="fecharJanela()">Voltar</button>
+
+        <!-- Botão Salvar como PDF -->
+        <button class="btn btn-primary" onclick="salvarComoPDF()">Salvar como PDF</button>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-</head>
-<body>
-    <h1>Detalhes do Cliente</h1>
-
-    <p><strong>ID:</strong> <span id="cliente_id">{{ cliente.id }}</span></p>
-    <p><strong>Nome Completo:</strong> <span id="cliente_nome">{{ cliente.nome_completo }}</span></p>
-    <p><strong>Data de Nascimento:</strong> <span id="cliente_data_nascimento">{{ cliente.data_nascimento }}</span></p>
-    <p><strong>Identidade:</strong> <span id="cliente_identidade">{{ cliente.identidade }}</span></p>
-    <p><strong>Telefone:</strong> <span id="cliente_telefone">{{ cliente.telefone }}</span></p>
-    <p><strong>Rua:</strong> <span id="cliente_rua">{{ cliente.rua }}</span></p>
-    <p><strong>Bairro:</strong> <span id="cliente_bairro">{{ cliente.bairro }}</span></p>
-    <p><strong>Cidade:</strong> <span id="cliente_cidade">{{ cliente.cidade }}</span></p>
-    <p><strong>Profissão:</strong> <span id="cliente_profissao">{{ cliente.profissao }}</span></p>
-    <p><strong>Escolaridade:</strong> <span id="cliente_escolaridade">{{ cliente.escolaridade }}</span></p>
-
-    <!-- Botão Fechar -->
-    <button onclick="fecharJanela()">Voltar</button>
-
-    <!-- Botão Salvar como PDF -->
-    <button onclick="salvarComoPDF()">Salvar</button>
-
     <script>
         function fecharJanela() {
             window.close();
@@ -54,5 +51,4 @@
             doc.save("cliente_detalhes.pdf");
         }
     </script>
-</body>
-</html>
+{% endblock %}
