@@ -47,6 +47,10 @@
     </div>
 
     <div class="form-group">
+         <label for="estoque">Estoque:</label>
+         <input type="number" id="estoque" name="estoque" class="form-control" value="{{ livro.estoque }}" required>
+    </div>  
+    <div class="form-group">
         <label for="capa_livro">Capa do Livro:</label>
         <img src="{{ livro.capa }}" alt="Capa do Livro" class="img-fluid">
     </div>

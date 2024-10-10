@@ -1,0 +1,42 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Página de Vendas</h1>
+
+    <h2>Livros Disponíveis</h2>
+    <div class="row">
+        {% for livro in livros %}
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                {% if livro.capa_livro %}
+                {% if livro.capa_livro.startswith('http://') or livro.capa_livro.startswith('https://') %}
+                    <img src="{{ livro.capa_livro }}" alt="Capa do livro" class="capa-livro">
+                {% else %}
+                    <img src="{{ url_for('static', filename='uploads/' ~ livro.capa_livro) }}" alt="Capa do livro" class="capa-livro">
+                {% endif %}
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ livro.titulo }}</h5>
+                    <p class="card-text"><strong>Autor:</strong> {{ livro.autor }}</p>
+                    <p class="card-text"><strong>Valor:</strong> R$ {{ livro.valor }}</p>
+                    
+                    <!-- Formulário de compra -->
+                    <form method="POST" action="{{ url_for('comprar', livro_id=livro.id) }}">
+                        <label for="cliente_id">Selecione um Cliente:</label>
+                        <select id="cliente_id" name="cliente_id" required>
+                            <option value="">Selecione um cliente</option>
+                            {% for cliente in clientes %}
+                                <option value="{{ cliente.id }}">{{ cliente.nome_completo }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit">Comprar</button>
+                    </form>
+                    
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

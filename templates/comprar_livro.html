@@ -1,0 +1,20 @@
+{% extends "index.html" %}
+
+{% block content %}
+    <h1>Comprar Livro</h1>
+    <h2>{{ livro.titulo }}</h2>
+    <p><strong>Autor:</strong> {{ livro.autor }}</p>
+    <p><strong>Valor:</strong> R$ {{ livro.valor }}</p>
+
+    <form method="POST">
+        <label for="cliente_id">Selecione um Cliente:</label>
+        <select id="cliente_id" name="cliente_id" required>
+            {% for cliente in clientes %}
+                <option value="{{ cliente.id }}">{{ cliente.nome_completo }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Comprar</button>
+    </form>
+    
+    <a href="{{ url_for('vendas') }}" class="btn btn-secondary">Cancelar</a>
+{% endblock %}

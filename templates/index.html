@@ -15,6 +15,7 @@
                 <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
                 <li class="nav-item"><a class="nav-link" href="/clientes">Clientes</a></li>
                 <li class="nav-item"><a class="nav-link" href="/livros">Livros</a></li>
+                <li class="nav-item"><a class="nav-link" href="/vendas">Vendas</a></li>
                 <li class="nav-item"><a class="nav-link" href="/configuracao">Configuração</a></li>
             </ul>
         </aside>
@@ -25,6 +26,16 @@
             {% endblock %}
         </main>
     </div>
+    {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class="flashes">
+      {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
     
 
     <!-- Bootstrap JS, Popper.js, e jQuery -->

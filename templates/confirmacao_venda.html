@@ -1,0 +1,10 @@
+{% extends "index.html" %}
+
+{% block content %}
+    <h1>Confirmação da Venda</h1>
+    <p>Cliente: {{ cliente.nome_completo }}</p>
+    <p>Livro: {{ livro.titulo }}</p>
+    <p>Valor Pago: R$ {{ livro.valor }}</p>
+    <p>Agradecemos pela sua compra!</p>
+    <a href="{{ url_for('vendas') }}">Voltar para Vendas</a>
+{% endblock %}

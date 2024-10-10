@@ -55,6 +55,11 @@
         <input type="number" id="valor" name="valor" step="0.01" class="form-control" required>
     </div>
 
+    <div class="form-group">
+        <label for="estoque">Quantidade em Estoque:</label>
+        <input type="number" id="estoque" name="estoque" class="form-control" required>
+    </div>
+
     <!-- Campo oculto para armazenar a URL da capa -->
     <input type="hidden" id="capa_livro" name="capa_livro">
 
@@ -85,9 +90,6 @@
                         data.items.forEach(item => {
                             var info = item.volumeInfo;
 
-                            // Convertendo valor do preço para reais (caso haja preço disponível)
-                            var precoReais = item.saleInfo && item.saleInfo.retailPrice ? (item.saleInfo.retailPrice.amount * 5.0).toFixed(2) : 'Indisponível';
-
                             var listItem = document.createElement('li');
                             listItem.classList.add('list-group-item');
 
@@ -104,7 +106,6 @@
                                         <strong>ISBN:</strong> ${info.industryIdentifiers ? info.industryIdentifiers[0].identifier : 'Indisponível'} <br>
                                         <strong>Ano:</strong> ${info.publishedDate || 'Desconhecido'} <br>
                                         <strong>Número de Páginas:</strong> ${info.pageCount || 'Indisponível'} <br>
-                                        <strong>Valor:</strong> R$ ${precoReais} <br>
                                         <button type="button" class="selecionar-livro btn btn-primary mt-2"
                                             data-titulo="${info.title}"
                                             data-autor="${info.authors ? info.authors.join(', ') : ''}"
@@ -112,9 +113,7 @@
                                             data-idade_leitura="${info.categories ? info.categories.join(', ') : ''}"
                                             data-ano="${info.publishedDate || ''}"
                                             data-isbn="${info.industryIdentifiers ? info.industryIdentifiers[0].identifier : ''}"
-                                            data-paginas="${info.pageCount || ''}"
-                                            data-valor="${precoReais}"
-                                            data-capa="${info.imageLinks ? info.imageLinks.thumbnail : ''}">Selecionar</button>
+                                            data-paginas="${info.pageCount || ''}">Selecionar</button>
                                     </div>
                                 </div>
                             `;
@@ -143,8 +142,6 @@
             var ano = event.target.getAttribute('data-ano');
             var isbn = event.target.getAttribute('data-isbn');
             var paginas = event.target.getAttribute('data-paginas');
-            var valor = event.target.getAttribute('data-valor');
-            var capa = event.target.getAttribute('data-capa');
 
             // Preencher os campos do formulário com os dados selecionados
             document.getElementById('titulo').value = titulo;
@@ -154,8 +151,6 @@
             document.getElementById('ano').value = ano;
             document.getElementById('isbn').value = isbn;
             document.getElementById('num_paginas').value = paginas;
-            document.getElementById('valor').value = valor;
-            document.getElementById('capa_livro').value = capa;  // Armazenar a URL da capa
 
             // Esconder os resultados após a seleção
             document.getElementById('resultados-busca').style.display = 'none';

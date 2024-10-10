@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, request, session, flash
 from flask import Flask, jsonify
 from config import app, db
-from models import Cliente, Livro  # Certifique-se de que Livro está importado corretamente
+from models import Cliente, Livro, Venda  # Certifique-se de que Livro está importado corretamente
 from datetime import datetime
 import os
 from werkzeug.utils import secure_filename
@@ -51,6 +51,7 @@ def clientes():
         data_nascimento = request.form['data_nascimento']
         identidade = request.form['identidade']
         telefone = request.form['telefone']
+        email = request.form['email'] 
         rua = request.form['rua']
         bairro = request.form['bairro']
         cidade = request.form['cidade']
@@ -62,6 +63,7 @@ def clientes():
             data_nascimento=data_nascimento,
             identidade=identidade,
             telefone=telefone,
+            email=email,
             rua=rua,
             bairro=bairro,
             cidade=cidade,
@@ -193,6 +195,7 @@ def editar_livro(id):
         livro.ano = request.form['ano']
         livro.num_paginas = request.form['num_paginas']
         livro.valor = request.form['valor']
+        livro.estoque = request.form['estoque']
         livro.capa_livro = request.form.get('capa_livro')  # Atualiza a URL da capa do livro
 
         try:
@@ -292,6 +295,56 @@ def configuracao():
 
 # FIM CONFIGURAÇÃO
 #########################################
+
+# VENDAS
+
+@app.route('/vendas')
+def vendas():
+    livros = Livro.query.all()  # Obtém todos os livros
+    clientes = Cliente.query.all()  # Obtém todos os clientes
+    return render_template('vendas.html', livros=livros, clientes=clientes)
+
+@app.route('/comprar/<int:livro_id>', methods=['GET', 'POST'])
+def comprar(livro_id):
+    livro = Livro.query.get_or_404(livro_id)
+    clientes = Cliente.query.all()  # Obtém todos os clientes
+
+    if request.method == 'POST':
+        cliente_id = request.form.get('cliente_id')
+        
+        if cliente_id:
+            cliente = Cliente.query.get_or_404(cliente_id)
+
+            if livro.estoque > 0:
+                nova_venda = Venda(livro_id=livro.id, cliente_id=cliente.id)
+                db.session.add(nova_venda)
+
+                livro.estoque -= 1
+                db.session.commit()
+
+                flash('Compra realizada com sucesso!', 'success')
+                return redirect(url_for('confirmacao_venda', livro_id=livro.id, cliente_id=cliente.id))
+            else:
+                flash('Desculpe, este livro está fora de estoque.', 'danger')
+                return redirect(url_for('vendas'))
+        else:
+            flash('Selecione um cliente para continuar.', 'warning')
+            return redirect(url_for('vendas'))
+
+    return render_template('comprar_livro.html', livro=livro, clientes=clientes)  # Passa clientes para o template
+
+
+@app.route('/confirmacao_venda/<int:livro_id>/<int:cliente_id>')
+def confirmacao_venda(livro_id, cliente_id):
+    livro = Livro.query.get_or_404(livro_id)
+    cliente = Cliente.query.get_or_404(cliente_id)
+
+    return render_template('confirmacao_venda.html', livro=livro, cliente=cliente)
+
+
+
+# FIM VENDAS
+############################################
 
 if __name__ == '__main__':
     with app.app_context():
