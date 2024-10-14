@@ -4,7 +4,12 @@ from config import app, db
 from models import Cliente, Livro, Venda  # Certifique-se de que Livro está importado corretamente
 from datetime import datetime
 import os
+import requests
 from werkzeug.utils import secure_filename
+from flask_migrate import Migrate
+from config import app, db  # Certifique-se de que 'app' e 'db' estão importados corretamente
+
+migrate = Migrate(app, db)
 
 # Simulação de dados de login (usuário e senha)
 USERS = {
@@ -53,6 +58,7 @@ def clientes():
         telefone = request.form['telefone']
         email = request.form['email'] 
         rua = request.form['rua']
+        cep = request.form['cep']  # Adicionando o campo 'cep'
         bairro = request.form['bairro']
         cidade = request.form['cidade']
         profissao = request.form['profissao']
@@ -65,6 +71,7 @@ def clientes():
             telefone=telefone,
             email=email,
             rua=rua,
+            cep=cep,  # Salvando o 'cep' no banco de dados
             bairro=bairro,
             cidade=cidade,
             profissao=profissao,
@@ -103,6 +110,7 @@ def editar_cliente(id):
         cliente.identidade = request.form['identidade']
         cliente.telefone = request.form['telefone']
         cliente.rua = request.form['rua']
+        cliente.cep = request.form['cep']  # Atualizando o campo 'cep'
         cliente.bairro = request.form['bairro']
         cliente.cidade = request.form['cidade']
         cliente.profissao = request.form['profissao']
@@ -136,6 +144,26 @@ def visualizar_cliente(id):
     cliente = Cliente.query.get_or_404(id)
     return render_template('detalhes_cliente.html', cliente=cliente)
 
+@app.route('/buscar_endereco', methods=['GET'])
+def buscar_endereco():
+    cep = request.args.get('cep')
+    if cep:
+        # Remover caracteres não numéricos do CEP
+        cep = ''.join(filter(str.isdigit, cep))
+        response = requests.get(f'https://viacep.com.br/ws/{cep}/json/')
+        
+        if response.status_code == 200:
+            data = response.json()
+            return jsonify({
+                'rua': data.get('logradouro', ''),
+                'bairro': data.get('bairro', ''),
+                'cidade': data.get('localidade', '')
+            })
+        else:
+            return jsonify({'error': 'CEP não encontrado'}), 404
+
+    return jsonify({'error': 'CEP inválido'}), 400
+    
 @app.route('/cliente/<int:id>', methods=['GET'])
 def detalhes_cliente(id):
     cliente = Cliente.query.get_or_404(id)
@@ -147,6 +175,7 @@ def detalhes_cliente(id):
         'identidade': cliente.identidade,
         'telefone': cliente.telefone,
         'rua': cliente.rua,
+        'cep': cliente.cep,  # Incluindo 'cep' nos detalhes do cliente
         'bairro': cliente.bairro,
         'cidade': cliente.cidade,
         'profissao': cliente.profissao,
@@ -154,6 +183,7 @@ def detalhes_cliente(id):
     }
 
     return jsonify(cliente_data)
+
 
 # FIM CLIENTES
 #########################################

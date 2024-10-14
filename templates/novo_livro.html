@@ -71,6 +71,7 @@
 
 <script>
     // Função para buscar o título do livro usando a API do Google Books
+    
     document.getElementById('buscar-livro').addEventListener('click', function() {
         var query = document.getElementById('titulo').value;
 
@@ -101,7 +102,7 @@
                                     <div class="col-md-9">
                                         <strong>Título:</strong> ${info.title} <br>
                                         <strong>Autor:</strong> ${info.authors ? info.authors.join(', ') : 'Desconhecido'} <br>
-                                        <strong>Editora:</strong> ${info.publisher || 'Desconhecida'} <br>
+                                        <strong>Editar:</strong> ${info.publisher || 'Desconhecida'} <br>
                                         <strong>Gênero:</strong> ${info.categories ? info.categories.join(', ') : 'Indisponível'} <br>
                                         <strong>ISBN:</strong> ${info.industryIdentifiers ? info.industryIdentifiers[0].identifier : 'Indisponível'} <br>
                                         <strong>Ano:</strong> ${info.publishedDate || 'Desconhecido'} <br>
@@ -113,7 +114,8 @@
                                             data-idade_leitura="${info.categories ? info.categories.join(', ') : ''}"
                                             data-ano="${info.publishedDate || ''}"
                                             data-isbn="${info.industryIdentifiers ? info.industryIdentifiers[0].identifier : ''}"
-                                            data-paginas="${info.pageCount || ''}">Selecionar</button>
+                                            data-paginas="${info.pageCount || ''}"
+                                            data-capa="${info.imageLinks ? info.imageLinks.thumbnail : ''}">Selecionar</button>
                                     </div>
                                 </div>
                             `;
@@ -142,6 +144,7 @@
             var ano = event.target.getAttribute('data-ano');
             var isbn = event.target.getAttribute('data-isbn');
             var paginas = event.target.getAttribute('data-paginas');
+            var capa = event.target.getAttribute('data-capa');
 
             // Preencher os campos do formulário com os dados selecionados
             document.getElementById('titulo').value = titulo;
@@ -151,6 +154,7 @@
             document.getElementById('ano').value = ano;
             document.getElementById('isbn').value = isbn;
             document.getElementById('num_paginas').value = paginas;
+            document.getElementById('capa_livro').value = capa; // Armazenar a URL da capa
 
             // Esconder os resultados após a seleção
             document.getElementById('resultados-busca').style.display = 'none';
