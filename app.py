@@ -229,7 +229,7 @@ def editar_livro(id):
         livro.capa_livro = request.form.get('capa_livro')  # Atualiza a URL da capa do livro
 
         try:
-            db.session.commit()  # Salvar as alterações no banco de dados
+            db.session.commit()  # Salva as alterações no banco de dados
             flash('Livro atualizado com sucesso!', 'success')
             return redirect(url_for('livros'))  # Redireciona para a página de listagem de livros
         except SQLAlchemyError as e:
@@ -261,7 +261,8 @@ def novo_livro():
         ano = request.form['ano']
         num_paginas = request.form['num_paginas']
         valor = request.form['valor']
-        
+        estoque = request.form['estoque']
+
         # Pegar a URL da capa do livro (enviada via campo oculto no formulário)
         capa_livro_url = request.form.get('capa_livro')  # Buscando a URL da capa
 
@@ -275,6 +276,7 @@ def novo_livro():
             ano=ano,
             num_paginas=num_paginas,
             valor=valor,
+            estoque=estoque,
             capa_livro=capa_livro_url  # Armazena a URL da capa do livro
         )
 
