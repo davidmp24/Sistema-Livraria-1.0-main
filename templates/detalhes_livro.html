@@ -11,6 +11,7 @@
         <p><strong>Ano:</strong> {{ livro.ano }}</p>
         <p><strong>Páginas:</strong> {{ livro.num_paginas }}</p>
         <p><strong>Valor:</strong> {{ livro.valor }}</p>
+        <p><strong>Unidades:</strong> {{ livro.estoque }}</p>
         {% if livro.capa_livro %}
         {% if livro.capa_livro.startswith('http') %}
             <img src="{{ livro.capa_livro }}" alt="Capa do livro" class="img-fluid my-3">

@@ -17,8 +17,12 @@
         <input type="number" id="telefone" name="telefone" required>
     
         <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required> <!-- Campo adicionado -->
+        <input type="email" id="email" name="email" required> 
     
+        <label for="cep">CEP:</label>
+        <input type="text" id="cep" name="cep" required>
+        <button type="button" class="btn btn-secondary" onclick="buscarEndereco()">Buscar</button>
+        
         <label for="rua">Rua:</label>
         <input type="text" id="rua" name="rua" required>
     
@@ -46,5 +50,25 @@
             <button type="button" onclick="window.location.href='{{ url_for('clientes') }}'">Cancelar</button>
         </div>
     </form>
-    
+
+    <script>
+        function buscarEndereco() {
+            const cep = document.getElementById('cep').value;
+            fetch(`/buscar_endereco?cep=${cep}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('CEP não encontrado');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('rua').value = data.rua;
+                    document.getElementById('bairro').value = data.bairro;
+                    document.getElementById('cidade').value = data.cidade;
+                })
+                .catch(error => {
+                    alert(error.message);
+                });
+        }
+    </script>
 {% endblock %}

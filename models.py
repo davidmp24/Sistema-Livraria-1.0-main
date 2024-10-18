@@ -9,6 +9,7 @@ class Cliente(db.Model):
     telefone = db.Column(db.String(20), nullable=False)  # Coluna telefone
     email = db.Column(db.String(100), nullable=False) 
     rua = db.Column(db.String(100), nullable=False)  # Coluna rua
+    cep = db.Column(db.String(9), nullable=False)
     bairro = db.Column(db.String(100), nullable=False)  # Coluna bairro
     cidade = db.Column(db.String(50), nullable=False)
     profissao = db.Column(db.String(50), nullable=False)
