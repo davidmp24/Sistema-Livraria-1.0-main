@@ -303,6 +303,7 @@ def atualizar_livro(livro_id):
     livro.ano = request.form['ano']
     livro.num_paginas = request.form['num_paginas']
     livro.valor = request.form['valor']
+    livro.estoque = request.form['estoque']
 
     try:
         db.session.commit()  # Salvar as alterações no banco de dados
@@ -316,6 +317,100 @@ def atualizar_livro(livro_id):
 
 # FIM LIVROS
 #########################################
+
+#VENDAS
+#########################################
+#Rota para buscar livro pela API
+@app.route('/api/livro/<int:livro_id>')
+def get_livro(livro_id):
+    livro = Livro.query.get_or_404(livro_id)
+    return jsonify({'titulo': livro.titulo, 'valor': livro.valor})
+
+@app.route('/vendas', methods=['GET', 'POST'])
+def registrar_venda():
+    if request.method == 'POST':
+        livro = request.form['livro']
+        quantidade = int(request.form['quantidade'])
+        valor_unitario = float(request.form['valor_unitario'])
+        valor_total = quantidade * valor_unitario
+        
+        # Lógica para salvar a venda no banco de dados
+        nova_venda = Venda(livro=livro, quantidade=quantidade, valor_unitario=valor_unitario, valor_total=valor_total)
+        db.session.add(nova_venda)
+        db.session.commit()
+
+        flash('Venda registrada com sucesso!', 'success')
+        return redirect(url_for('registrar_venda'))
+
+    # Exibe as vendas já registradas
+    vendas = Venda.query.all()
+    return render_template('vendas.html', vendas=vendas)
+
+#Rota para verificar estoque
+@app.route('/verificar_estoque/<int:livro_id>')
+def verificar_estoque(livro_id):
+    livro = Livro.query.get(livro_id)
+    if livro:
+        return jsonify({'estoque': livro.estoque})
+    else:
+        return jsonify({'estoque': 0}), 404
+    
+#Rota para obter o preço do livro
+@app.route('/obter_preco/<int:livro_id>')
+def obter_preco(livro_id):
+    livro = Livro.query.get(livro_id)
+    if livro:
+        return jsonify({'preco': livro.valor})
+    else:
+        return jsonify({'preco': 0}), 404
+    
+#Rota para buscar cliente
+@app.route('/buscar_cliente')
+def buscar_cliente():
+    query = request.args.get('query')
+    # Filtrar os clientes que correspondem ao nome ou CPF
+    clientes = Cliente.query.filter(
+        (Cliente.nome.ilike(f'%{query}%')) | 
+        (Cliente.cpf.ilike(f'%{query}%'))
+    ).all()
+
+    # Converter para JSON
+    clientes_json = [{'id': c.id, 'nome': c.nome, 'cpf': c.cpf} for c in clientes]
+    return jsonify(clientes_json)
+
+
+#    Rota para confirmar a venda
+@app.route('/confirmar_venda', methods=['POST'])
+def confirmar_venda():
+    livro_id = request.form['livro_id']
+    quantidade = int(request.form['quantidade'])
+    cliente_id = request.form['cliente_id'] or None
+
+    # Verifique se o livro existe e se há estoque suficiente
+    livro = Livro.query.get(livro_id)
+    if livro and livro.estoque >= quantidade:
+        # Atualiza o estoque
+        livro.estoque -= quantidade
+
+        # Crie a lógica de venda e nota fiscal
+        venda = Venda(
+            livro_id=livro_id,
+            cliente_id=cliente_id,
+            quantidade=quantidade,
+            valor_total=quantidade * livro.valor
+        )
+        db.session.add(venda)
+        db.session.commit()
+        
+        flash('Venda realizada com sucesso!', 'success')
+        return redirect(url_for('vendas'))
+    else:
+        flash('Estoque insuficiente ou livro não encontrado.', 'danger')
+        return redirect(url_for('vendas'))
+
+
+
+#FIM#########################################################
 
 # CONFIGURAÇÃO
 

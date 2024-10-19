@@ -1,42 +1,135 @@
 {% extends "index.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1>Página de Vendas</h1>
+<h1>Vendas</h1>
 
-    <h2>Livros Disponíveis</h2>
-    <div class="row">
-        {% for livro in livros %}
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                {% if livro.capa_livro %}
-                {% if livro.capa_livro.startswith('http://') or livro.capa_livro.startswith('https://') %}
-                    <img src="{{ livro.capa_livro }}" alt="Capa do livro" class="capa-livro">
-                {% else %}
-                    <img src="{{ url_for('static', filename='uploads/' ~ livro.capa_livro) }}" alt="Capa do livro" class="capa-livro">
-                {% endif %}
-                {% endif %}
-                <div class="card-body">
-                    <h5 class="card-title">{{ livro.titulo }}</h5>
-                    <p class="card-text"><strong>Autor:</strong> {{ livro.autor }}</p>
-                    <p class="card-text"><strong>Valor:</strong> R$ {{ livro.valor }}</p>
-                    
-                    <!-- Formulário de compra -->
-                    <form method="POST" action="{{ url_for('comprar', livro_id=livro.id) }}">
-                        <label for="cliente_id">Selecione um Cliente:</label>
-                        <select id="cliente_id" name="cliente_id" required>
-                            <option value="">Selecione um cliente</option>
-                            {% for cliente in clientes %}
-                                <option value="{{ cliente.id }}">{{ cliente.nome_completo }}</option>
-                            {% endfor %}
-                        </select>
-                        <button type="submit">Comprar</button>
-                    </form>
-                    
-                </div>
+<div class="vendas-container">
+
+    <!-- Parte 2: Dados do Livro e Quantidade -->
+    <div class="parte2">
+        <form id="venda-form" action="{{ url_for('confirmar_venda') }}" method="POST">
+            <div class="form-group">
+                <label for="livro_id">ID do Livro:</label>
+                <input type="number" id="livro_id" name="livro_id" class="form-control" required>
             </div>
-        </div>
-        {% endfor %}
+
+            <div class="form-group">
+                <label for="quantidade">Quantidade:</label>
+                <input type="number" id="quantidade" name="quantidade" class="form-control" min="1" required>
+                <span id="estoque-alert" style="color:red;"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="preco_unitario">Preço Unitário:</label>
+                <input type="text" id="preco_unitario" name="preco_unitario" class="form-control" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="preco_total">Preço Total:</label>
+                <input type="text" id="preco_total" name="preco_total" class="form-control" readonly>
+            </div>
+        </form>
+    </div>
+
+    <!-- Parte 3: Seleção do Cliente -->
+    <div class="form-group">
+        <label for="buscar_cliente">Buscar Cliente (Identidade/CPF ou Nome):</label>
+        <input type="text" id="buscar_cliente" name="buscar_cliente" class="form-control" placeholder="Digite o CPF ou Nome do Cliente">
+        <button type="button" class="btn btn-primary" onclick="consultarCliente()">Consultar</button>
+    </div>
+    
+    <!-- Onde os resultados da busca serão exibidos -->
+    <div id="resultado_cliente"></div>
+    
+    <script>
+        function consultarCliente() {
+            var query = document.getElementById('buscar_cliente').value;
+            if (query.length > 0) {
+                // Enviar requisição para a rota de busca de clientes
+                fetch(`/buscar_cliente?query=${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    let resultado = document.getElementById('resultado_cliente');
+                    resultado.innerHTML = "";
+                    if (data.length > 0) {
+                        let table = document.createElement('table');
+                        table.classList.add('table', 'table-bordered');
+    
+                        // Adicionar cabeçalhos à tabela
+                        let thead = document.createElement('thead');
+                        thead.innerHTML = `
+                            <tr>
+                                <th>Nome</th>
+                                <th>CPF</th>
+                                <th>Ação</th>
+                            </tr>
+                        `;
+                        table.appendChild(thead);
+    
+                        let tbody = document.createElement('tbody');
+                        data.forEach(cliente => {
+                            let row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${cliente.nome}</td>
+                                <td>${cliente.cpf}</td>
+                                <td><button class="btn btn-success" onclick="selecionarCliente(${cliente.id}, '${cliente.nome}', '${cliente.cpf}')">Selecionar</button></td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+                        table.appendChild(tbody);
+                        resultado.appendChild(table);
+                    } else {
+                        resultado.innerHTML = "<p>Nenhum cliente encontrado.</p>";
+                    }
+                });
+            } else {
+                alert("Digite a Identidade/CPF ou Nome do Cliente.");
+            }
+        }
+    
+        function selecionarCliente(id, nome, cpf) {
+            document.getElementById('buscar_cliente').value = `${nome} - CPF: ${cpf}`;
+            document.getElementById('resultado_cliente').innerHTML = ""; // Limpar a lista de clientes
+            // Aqui você pode armazenar o ID do cliente em uma variável oculta ou qualquer outro mecanismo para associar à venda
+            console.log(`Cliente Selecionado: ${nome} (ID: ${id})`);
+        }
+    </script>
+    
+    <!-- Parte 4: Botão de Finalizar e Nota Fiscal -->
+    <div class="parte4">
+        <button type="submit" form="venda-form" class="btn btn-primary">Confirmar Venda</button>
     </div>
 </div>
+
+<script>
+    // Verifica a disponibilidade de estoque
+    document.getElementById('quantidade').addEventListener('input', function() {
+        var livroId = document.getElementById('livro_id').value;
+        var quantidade = parseInt(this.value);
+
+        // Simulação de checagem de estoque via fetch (substitua com chamada de API real)
+        fetch(`/verificar_estoque/${livroId}`).then(response => response.json()).then(data => {
+            if (quantidade > data.estoque) {
+                document.getElementById('estoque-alert').innerText = "Quantidade indisponível";
+            } else {
+                document.getElementById('estoque-alert').innerText = "";
+            }
+        });
+
+        // Cálculo do preço total (ajustar conforme API)
+        var precoUnitario = parseFloat(document.getElementById('preco_unitario').value || 0);
+        document.getElementById('preco_total').value = (quantidade * precoUnitario).toFixed(2);
+    });
+
+    // Preenche o preço unitário ao buscar o livro por ID
+    document.getElementById('livro_id').addEventListener('change', function() {
+        var livroId = this.value;
+
+        // Simulação de busca de preço via fetch (substitua com chamada de API real)
+        fetch(`/obter_preco/${livroId}`).then(response => response.json()).then(data => {
+            document.getElementById('preco_unitario').value = data.preco;
+        });
+    });
+</script>
+
 {% endblock %}
