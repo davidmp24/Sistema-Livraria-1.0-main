@@ -1,5 +1,6 @@
 from flask import render_template, redirect, url_for, request, session, flash
 from flask import Flask, jsonify
+from flask_login import LoginManager, UserMixin, login_user, login_required, current_user
 from config import app, db
 from models import Cliente, Livro, Venda  # Certifique-se de que Livro está importado corretamente
 from datetime import datetime
@@ -10,6 +11,15 @@ from flask_migrate import Migrate
 from config import app, db  # Certifique-se de que 'app' e 'db' estão importados corretamente
 
 migrate = Migrate(app, db)
+
+# Inicialização do LoginManager
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+# Definição do carregador de usuário
+@login_manager.user_loader
+def load_user(user_id):
+    return username.query.get(int(user_id))  # Aqui, retorne o usuário correspondente ao ID
 
 # Simulação de dados de login (usuário e senha)
 USERS = {
@@ -44,6 +54,29 @@ def login():
 def logout():
     session.pop('username', None)
     return redirect(url_for('login'))
+
+
+@app.route('/alterar_senha', methods=['GET', 'POST'])
+def alterar_senha():
+    # Verifica se o usuário está autenticado
+    if 'username' not in session:
+        flash('Você precisa estar logado para alterar a senha.', 'danger')
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        nova_senha = request.form['nova_senha']
+        confirmar_senha = request.form['confirmar_senha']
+
+        if nova_senha == confirmar_senha:
+            # Aqui você pode implementar a lógica para atualizar a senha do usuário
+            # No seu caso, se estiver usando um dicionário USERS:
+            USERS[session['username']] = nova_senha
+            flash('Senha alterada com sucesso!', 'success')
+            return redirect(url_for('home'))  # Redireciona para a página inicial
+        else:
+            flash('As senhas não conferem. Tente novamente.', 'danger')
+
+    return render_template('alterar_senha.html')
 
 # FIM LOGIN
 #########################################
