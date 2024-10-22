@@ -1,135 +1,122 @@
 {% extends "index.html" %}
 
 {% block content %}
-<h1>Vendas</h1>
+<h1>Controle de Vendas</h1>
 
 <div class="vendas-container">
+    <div class="row-container" style="display: flex; gap: 20px;">
+        <!-- Campo de pesquisa do livro (lado esquerdo) -->
+        <div class="pesquisa-livro" style="flex: 1;">
+            <form action="{{ url_for('vendas') }}" method="POST">
+                <!-- Campo de ID do livro e botão de busca -->
+                <div class="form-group" style="display: flex; align-items: center;">
+                    <label for="livro_id" style="margin-right: 10px;">ID do Livro:</label>
+                    <input type="number" id="livro_id" name="livro_id" class="form-control" style="width: 150px;" required>
+                    <button type="submit" class="btn btn-primary" style="margin-left: 10px; height: 38px;">Buscar</button>
+                </div>
 
-    <!-- Parte 2: Dados do Livro e Quantidade -->
-    <div class="parte2">
-        <form id="venda-form" action="{{ url_for('confirmar_venda') }}" method="POST">
-            <div class="form-group">
-                <label for="livro_id">ID do Livro:</label>
-                <input type="number" id="livro_id" name="livro_id" class="form-control" required>
-            </div>
+                <!-- Novos campos adicionados abaixo do ID do Livro -->
+                {% if livro_info %}
+                <div class="form-group mt-3">
+                    <label for="titulo">Título:</label>
+                    <input type="text" id="titulo" name="titulo" class="form-control" value="{{ livro_info.titulo }}" readonly>
+                </div>
 
-            <div class="form-group">
-                <label for="quantidade">Quantidade:</label>
-                <input type="number" id="quantidade" name="quantidade" class="form-control" min="1" required>
-                <span id="estoque-alert" style="color:red;"></span>
-            </div>
+                <div class="form-group">
+                    <label for="quantidade">Quantidade:</label>
+                    <input type="number" id="quantidade" name="quantidade" class="form-control" min="1" max="{{ livro_info.estoque }}" value="1" oninput="calcularValorTotal()" required>
+                    <div id="estoque-alert" class="alert alert-danger mt-2" style="display:none;">
+                        Quantidade excedida! Estoque disponível: {{ livro_info.estoque }}.
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label for="preco_unitario">Preço Unitário:</label>
-                <input type="text" id="preco_unitario" name="preco_unitario" class="form-control" readonly>
-            </div>
+                <div class="form-group">
+                    <label for="valor_total">Valor Total:</label>
+                    <input type="text" id="valor_total" name="valor_total" class="form-control" value="R$ {{ livro_info.valor }}" readonly>
+                </div>
 
-            <div class="form-group">
-                <label for="preco_total">Preço Total:</label>
-                <input type="text" id="preco_total" name="preco_total" class="form-control" readonly>
-            </div>
-        </form>
-    </div>
-
-    <!-- Parte 3: Seleção do Cliente -->
-    <div class="form-group">
-        <label for="buscar_cliente">Buscar Cliente (Identidade/CPF ou Nome):</label>
-        <input type="text" id="buscar_cliente" name="buscar_cliente" class="form-control" placeholder="Digite o CPF ou Nome do Cliente">
-        <button type="button" class="btn btn-primary" onclick="consultarCliente()">Consultar</button>
-    </div>
-    
-    <!-- Onde os resultados da busca serão exibidos -->
-    <div id="resultado_cliente"></div>
-    
-    <script>
-        function consultarCliente() {
-            var query = document.getElementById('buscar_cliente').value;
-            if (query.length > 0) {
-                // Enviar requisição para a rota de busca de clientes
-                fetch(`/buscar_cliente?query=${query}`)
-                .then(response => response.json())
-                .then(data => {
-                    let resultado = document.getElementById('resultado_cliente');
-                    resultado.innerHTML = "";
-                    if (data.length > 0) {
-                        let table = document.createElement('table');
-                        table.classList.add('table', 'table-bordered');
-    
-                        // Adicionar cabeçalhos à tabela
-                        let thead = document.createElement('thead');
-                        thead.innerHTML = `
-                            <tr>
-                                <th>Nome</th>
-                                <th>CPF</th>
-                                <th>Ação</th>
-                            </tr>
-                        `;
-                        table.appendChild(thead);
-    
-                        let tbody = document.createElement('tbody');
-                        data.forEach(cliente => {
-                            let row = document.createElement('tr');
-                            row.innerHTML = `
-                                <td>${cliente.nome}</td>
-                                <td>${cliente.cpf}</td>
-                                <td><button class="btn btn-success" onclick="selecionarCliente(${cliente.id}, '${cliente.nome}', '${cliente.cpf}')">Selecionar</button></td>
-                            `;
-                            tbody.appendChild(row);
-                        });
-                        table.appendChild(tbody);
-                        resultado.appendChild(table);
-                    } else {
-                        resultado.innerHTML = "<p>Nenhum cliente encontrado.</p>";
-                    }
-                });
-            } else {
-                alert("Digite a Identidade/CPF ou Nome do Cliente.");
-            }
-        }
-    
-        function selecionarCliente(id, nome, cpf) {
-            document.getElementById('buscar_cliente').value = `${nome} - CPF: ${cpf}`;
-            document.getElementById('resultado_cliente').innerHTML = ""; // Limpar a lista de clientes
-            // Aqui você pode armazenar o ID do cliente em uma variável oculta ou qualquer outro mecanismo para associar à venda
-            console.log(`Cliente Selecionado: ${nome} (ID: ${id})`);
-        }
-    </script>
-    
-    <!-- Parte 4: Botão de Finalizar e Nota Fiscal -->
-    <div class="parte4">
-        <button type="submit" form="venda-form" class="btn btn-primary">Confirmar Venda</button>
+                <!-- Novo campo para CPF ou Nome do cliente -->
+                <div class="form-group">
+                    <label for="cliente_info">CPF ou Nome Completo do Cliente:</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="cliente_info" name="cliente_info" class="form-control" placeholder="Digite CPF ou Nome" required>
+                        <button type="button" class="btn btn-info" onclick="buscarCliente()">Buscar</button>
+                    </div>
+                    <ul id="resultado_busca" class="mt-2" style="list-style-type: none; padding: 0; display: none;"></ul>
+                </div>
+                {% endif %}
+            </form>
+        </div>
     </div>
 </div>
 
+<!-- Tabela de resultado da busca do livro -->
+{% if livro_info %}
+<div class="livro-result mt-4">
+    <!-- Capa do livro -->
+    <div class="livro-capa">
+        <img src="{{ livro_info.capa }}" alt="Capa do Livro" class="livro-imagem">
+    </div>
+
+    <!-- Informações do livro ao lado da capa -->
+    <div class="livro-info">
+        <p><strong>Título:</strong> {{ livro_info.titulo }}</p>
+        <p><strong>Autor:</strong> {{ livro_info.autor }}</p>
+        <p><strong>Gênero:</strong> {{ livro_info.idade_leitura }}</p>
+        <p><strong>Estoque:</strong> {{ livro_info.estoque }}</p>
+        <p><strong>Valor:</strong> R$ {{ livro_info.valor }}</p>
+    </div>
+</div>
+{% endif %}
+
 <script>
-    // Verifica a disponibilidade de estoque
-    document.getElementById('quantidade').addEventListener('input', function() {
-        var livroId = document.getElementById('livro_id').value;
-        var quantidade = parseInt(this.value);
+    function calcularValorTotal() {
+        const quantidade = parseInt(document.getElementById('quantidade').value);
+        const estoque = {{ livro_info.estoque }};
+        const valorUnitario = {{ livro_info.valor }};
 
-        // Simulação de checagem de estoque via fetch (substitua com chamada de API real)
-        fetch(`/verificar_estoque/${livroId}`).then(response => response.json()).then(data => {
-            if (quantidade > data.estoque) {
-                document.getElementById('estoque-alert').innerText = "Quantidade indisponível";
-            } else {
-                document.getElementById('estoque-alert').innerText = "";
-            }
-        });
+        if (quantidade > estoque) {
+            document.getElementById('estoque-alert').style.display = 'block';
+            document.getElementById('valor_total').value = "R$ 0.00";
+        } else {
+            document.getElementById('estoque-alert').style.display = 'none';
+            const valorTotal = quantidade * valorUnitario;
+            document.getElementById('valor_total').value = "R$ " + valorTotal.toFixed(2);
+        }
+    }
 
-        // Cálculo do preço total (ajustar conforme API)
-        var precoUnitario = parseFloat(document.getElementById('preco_unitario').value || 0);
-        document.getElementById('preco_total').value = (quantidade * precoUnitario).toFixed(2);
+    // Inicializa o valor total com base na quantidade 1 por padrão
+    document.addEventListener("DOMContentLoaded", function() {
+        calcularValorTotal();
     });
 
-    // Preenche o preço unitário ao buscar o livro por ID
-    document.getElementById('livro_id').addEventListener('change', function() {
-        var livroId = this.value;
+    function buscarCliente() {
+        const clienteInfo = document.getElementById('cliente_info').value;
 
-        // Simulação de busca de preço via fetch (substitua com chamada de API real)
-        fetch(`/obter_preco/${livroId}`).then(response => response.json()).then(data => {
-            document.getElementById('preco_unitario').value = data.preco;
-        });
-    });
+        // Exemplo de chamada de API ou busca de dados (aqui você deve implementar a lógica real)
+        const clientes = [
+            { nome: "João Silva", cpf: "123.456.789-00" },
+            { nome: "Maria Oliveira", cpf: "987.654.321-00" },
+            { nome: "Carlos Pereira", cpf: "111.222.333-44" }
+        ];
+
+        const resultados = clientes.filter(cliente => 
+            cliente.nome.includes(clienteInfo) || cliente.cpf.includes(clienteInfo)
+        );
+
+        const resultadoLista = document.getElementById('resultado_busca');
+        resultadoLista.innerHTML = ""; // Limpa resultados anteriores
+        if (resultados.length > 0) {
+            resultados.forEach(cliente => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `${cliente.nome} - ${cliente.cpf}`;
+                resultadoLista.appendChild(listItem);
+            });
+            resultadoLista.style.display = 'block';
+        } else {
+            resultadoLista.style.display = 'none'; // Esconde a lista se não houver resultados
+        }
+    }
 </script>
 
 {% endblock %}

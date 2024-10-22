@@ -111,3 +111,26 @@ table th {
     background-color: #f4f4f4;
     color: #333;
 }
+
+/* Estilo da página de Vendas */
+.vendas-container {
+    margin-top: 20px;
+}
+
+.livro-result {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.livro-capa img {
+    width: 150px;
+    height: auto;
+    object-fit: cover;
+}
+
+.livro-info p {
+    margin: 0;
+    font-size: 16px;
+}

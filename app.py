@@ -320,94 +320,43 @@ def atualizar_livro(livro_id):
 
 #VENDAS
 #########################################
-#Rota para buscar livro pela API
-@app.route('/api/livro/<int:livro_id>')
-def get_livro(livro_id):
-    livro = Livro.query.get_or_404(livro_id)
-    return jsonify({'titulo': livro.titulo, 'valor': livro.valor})
-
 @app.route('/vendas', methods=['GET', 'POST'])
-def registrar_venda():
+def vendas():
+    livro_info = None
     if request.method == 'POST':
-        livro = request.form['livro']
-        quantidade = int(request.form['quantidade'])
-        valor_unitario = float(request.form['valor_unitario'])
-        valor_total = quantidade * valor_unitario
-        
-        # Lógica para salvar a venda no banco de dados
-        nova_venda = Venda(livro=livro, quantidade=quantidade, valor_unitario=valor_unitario, valor_total=valor_total)
-        db.session.add(nova_venda)
-        db.session.commit()
+        livro_id = request.form.get('livro_id')
 
-        flash('Venda registrada com sucesso!', 'success')
-        return redirect(url_for('registrar_venda'))
+        # Buscar livro no banco de dados
+        livro = Livro.query.get(livro_id)
+        if livro:
+            livro_info = {
+                'capa': livro.capa_livro,
+                'titulo': livro.titulo,
+                'autor': livro.autor,
+                'genero': livro.idade_leitura,  # ou outro campo referente ao gênero
+                'estoque': livro.estoque,
+                'valor': livro.valor
+            }
+        else:
+            flash("Livro não encontrado", "danger")
 
-    # Exibe as vendas já registradas
-    vendas = Venda.query.all()
-    return render_template('vendas.html', vendas=vendas)
+    return render_template('vendas.html', livro_info=livro_info)
 
-#Rota para verificar estoque
-@app.route('/verificar_estoque/<int:livro_id>')
-def verificar_estoque(livro_id):
+#Rota para buscar livro automatico
+@app.route('/buscar_livro/<int:livro_id>', methods=['GET'])
+def buscar_livro(livro_id):
     livro = Livro.query.get(livro_id)
     if livro:
-        return jsonify({'estoque': livro.estoque})
+        return jsonify({
+            'capa': livro.capa_url,
+            'titulo': livro.titulo,
+            'autor': livro.autor,
+            'idade_leitura': livro.idade_leitura,
+            'estoque': livro.estoque,
+            'valor': livro.preco
+        })
     else:
-        return jsonify({'estoque': 0}), 404
-    
-#Rota para obter o preço do livro
-@app.route('/obter_preco/<int:livro_id>')
-def obter_preco(livro_id):
-    livro = Livro.query.get(livro_id)
-    if livro:
-        return jsonify({'preco': livro.valor})
-    else:
-        return jsonify({'preco': 0}), 404
-    
-#Rota para buscar cliente
-@app.route('/buscar_cliente')
-def buscar_cliente():
-    query = request.args.get('query')
-    # Filtrar os clientes que correspondem ao nome ou CPF
-    clientes = Cliente.query.filter(
-        (Cliente.nome.ilike(f'%{query}%')) | 
-        (Cliente.cpf.ilike(f'%{query}%'))
-    ).all()
-
-    # Converter para JSON
-    clientes_json = [{'id': c.id, 'nome': c.nome, 'cpf': c.cpf} for c in clientes]
-    return jsonify(clientes_json)
-
-
-#    Rota para confirmar a venda
-@app.route('/confirmar_venda', methods=['POST'])
-def confirmar_venda():
-    livro_id = request.form['livro_id']
-    quantidade = int(request.form['quantidade'])
-    cliente_id = request.form['cliente_id'] or None
-
-    # Verifique se o livro existe e se há estoque suficiente
-    livro = Livro.query.get(livro_id)
-    if livro and livro.estoque >= quantidade:
-        # Atualiza o estoque
-        livro.estoque -= quantidade
-
-        # Crie a lógica de venda e nota fiscal
-        venda = Venda(
-            livro_id=livro_id,
-            cliente_id=cliente_id,
-            quantidade=quantidade,
-            valor_total=quantidade * livro.valor
-        )
-        db.session.add(venda)
-        db.session.commit()
-        
-        flash('Venda realizada com sucesso!', 'success')
-        return redirect(url_for('vendas'))
-    else:
-        flash('Estoque insuficiente ou livro não encontrado.', 'danger')
-        return redirect(url_for('vendas'))
-
+        return jsonify(None), 404
 
 
 #FIM#########################################################
@@ -423,55 +372,6 @@ def configuracao():
 # FIM CONFIGURAÇÃO
 #########################################
 
-# VENDAS
-
-@app.route('/vendas')
-def vendas():
-    livros = Livro.query.all()  # Obtém todos os livros
-    clientes = Cliente.query.all()  # Obtém todos os clientes
-    return render_template('vendas.html', livros=livros, clientes=clientes)
-
-@app.route('/comprar/<int:livro_id>', methods=['GET', 'POST'])
-def comprar(livro_id):
-    livro = Livro.query.get_or_404(livro_id)
-    clientes = Cliente.query.all()  # Obtém todos os clientes
-
-    if request.method == 'POST':
-        cliente_id = request.form.get('cliente_id')
-        
-        if cliente_id:
-            cliente = Cliente.query.get_or_404(cliente_id)
-
-            if livro.estoque > 0:
-                nova_venda = Venda(livro_id=livro.id, cliente_id=cliente.id)
-                db.session.add(nova_venda)
-
-                livro.estoque -= 1
-                db.session.commit()
-
-                flash('Compra realizada com sucesso!', 'success')
-                return redirect(url_for('confirmacao_venda', livro_id=livro.id, cliente_id=cliente.id))
-            else:
-                flash('Desculpe, este livro está fora de estoque.', 'danger')
-                return redirect(url_for('vendas'))
-        else:
-            flash('Selecione um cliente para continuar.', 'warning')
-            return redirect(url_for('vendas'))
-
-    return render_template('comprar_livro.html', livro=livro, clientes=clientes)  # Passa clientes para o template
-
-
-@app.route('/confirmacao_venda/<int:livro_id>/<int:cliente_id>')
-def confirmacao_venda(livro_id, cliente_id):
-    livro = Livro.query.get_or_404(livro_id)
-    cliente = Cliente.query.get_or_404(cliente_id)
-
-    return render_template('confirmacao_venda.html', livro=livro, cliente=cliente)
-
-
-
-# FIM VENDAS
-############################################
 
 if __name__ == '__main__':
     with app.app_context():
