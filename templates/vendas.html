@@ -5,9 +5,8 @@
 
 <div class="vendas-container">
     <div class="row-container" style="display: flex; gap: 20px;">
-        <!-- Campo de pesquisa do livro (lado esquerdo) -->
         <div class="pesquisa-livro" style="flex: 1;">
-            <form action="{{ url_for('vendas') }}" method="POST">
+            <form action="{{ url_for('vendas') }}" method="POST" id="vendaForm">
                 <!-- Campo de ID do livro e botão de busca -->
                 <div class="form-group" style="display: flex; align-items: center;">
                     <label for="livro_id" style="margin-right: 10px;">ID do Livro:</label>
@@ -15,7 +14,7 @@
                     <button type="submit" class="btn btn-primary" style="margin-left: 10px; height: 38px;">Buscar</button>
                 </div>
 
-                <!-- Novos campos adicionados abaixo do ID do Livro -->
+                <!-- Novos campos para Título, Quantidade, Valor Total e Cliente -->
                 {% if livro_info %}
                 <div class="form-group mt-3">
                     <label for="titulo">Título:</label>
@@ -35,7 +34,7 @@
                     <input type="text" id="valor_total" name="valor_total" class="form-control" value="R$ {{ livro_info.valor }}" readonly>
                 </div>
 
-                <!-- Novo campo para CPF ou Nome do cliente -->
+                <!-- Campo para CPF ou Nome do Cliente -->
                 <div class="form-group">
                     <label for="cliente_info">CPF ou Nome Completo do Cliente:</label>
                     <div style="display: flex; gap: 10px;">
@@ -44,6 +43,9 @@
                     </div>
                     <ul id="resultado_busca" class="mt-2" style="list-style-type: none; padding: 0; display: none;"></ul>
                 </div>
+
+                <!-- Botão de confirmação de venda -->
+                <button type="button" class="btn btn-success mt-3" onclick="confirmarVenda()">Confirmar</button>
                 {% endif %}
             </form>
         </div>
@@ -85,15 +87,8 @@
         }
     }
 
-    // Inicializa o valor total com base na quantidade 1 por padrão
-    document.addEventListener("DOMContentLoaded", function() {
-        calcularValorTotal();
-    });
-
     function buscarCliente() {
         const clienteInfo = document.getElementById('cliente_info').value;
-
-        // Exemplo de chamada de API ou busca de dados (aqui você deve implementar a lógica real)
         const clientes = [
             { nome: "João Silva", cpf: "123.456.789-00" },
             { nome: "Maria Oliveira", cpf: "987.654.321-00" },
@@ -114,8 +109,44 @@
             });
             resultadoLista.style.display = 'block';
         } else {
-            resultadoLista.style.display = 'none'; // Esconde a lista se não houver resultados
+            resultadoLista.style.display = 'none';
         }
+    }
+
+    function confirmarVenda() {
+        const vendaForm = document.getElementById('vendaForm');
+        const quantidade = parseInt(document.getElementById('quantidade').value);
+        const estoque = {{ livro_info.estoque }};
+        
+        if (quantidade > estoque) {
+            alert("Quantidade excedida!");
+            return;
+        }
+
+        fetch('{{ url_for("confirmar_venda") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                livro_id: document.getElementById('livro_id').value,
+                titulo: document.getElementById('titulo').value,
+                quantidade: quantidade,
+                valor_total: document.getElementById('valor_total').value,
+                cliente_info: document.getElementById('cliente_info').value,
+                data_hora: new Date().toISOString()  // Salva a data/hora atual em formato ISO
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Venda registrada com sucesso!");
+                vendaForm.reset();
+            } else {
+                alert("Erro ao registrar a venda.");
+            }
+        })
+        .catch(error => console.error('Erro:', error));
     }
 </script>
 

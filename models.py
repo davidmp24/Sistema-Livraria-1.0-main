@@ -52,12 +52,17 @@ class Venda(db.Model):
     livro_id = db.Column(db.Integer, db.ForeignKey('livro.id'), nullable=False)
     data_venda = db.Column(db.DateTime, default=datetime.utcnow)
     valor_pago = db.Column(db.Float, nullable=False)
-    
+    quantidade_vendida = db.Column(db.Integer, nullable=False)
+    valor_total = db.Column(db.Float, nullable=False)
+    cpf_cliente = db.Column(db.String(11), nullable=False)
+
+    # Relacionamentos
     cliente = db.relationship('Cliente', backref=db.backref('vendas', lazy=True))
     livro = db.relationship('Livro', backref=db.backref('vendas', lazy=True))
 
     def __repr__(self):
-        return f'<Venda {self.id} - {self.cliente.nome_completo} - {self.livro.titulo}>'
+        # Acessando o título do livro através da relação livro
+        return f'<Venda {self.id} - Cliente: {self.cliente.nome_completo} - Livro: {self.livro.titulo} - Quantidade: {self.quantidade_vendida}>'
         
 
 def init_db(app):

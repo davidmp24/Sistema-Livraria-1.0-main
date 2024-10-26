@@ -342,6 +342,53 @@ def vendas():
 
     return render_template('vendas.html', livro_info=livro_info)
 
+#Rota Salvar vendas 
+@app.route('/confirmar_venda', methods=['POST'])
+def confirmar_venda():
+    try:
+        cliente_id = request.form.get('cliente_id')
+        livro_id = request.form.get('livro_id')
+        quantidade_vendida = int(request.form.get('quantidade'))
+        cpf_cliente = request.form.get('cpf_cliente')
+
+        livro = Livro.query.get(livro_id)
+        if not livro:
+            flash("Livro não encontrado.", "error")
+            return redirect(url_for('vendas'))
+
+        if quantidade_vendida > livro.estoque:
+            flash("Quantidade excede o estoque disponível.", "error")
+            return redirect(url_for('vendas'))
+
+        valor_total = quantidade_vendida * livro.valor
+
+        nova_venda = Venda(
+            cliente_id=cliente_id,
+            livro_id=livro_id,
+            quantidade_vendida=quantidade_vendida,
+            valor_total=valor_total,
+            cpf_cliente=cpf_cliente,
+            data_venda=datetime.utcnow()
+        )
+
+        db.session.add(nova_venda)
+        livro.estoque -= quantidade_vendida
+        db.session.commit()
+
+        flash("Venda confirmada com sucesso!", "success")
+        return redirect(url_for('extrato_venda', venda_id=nova_venda.id))
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erro ao salvar a venda: {e}", "error")
+        return redirect(url_for('vendas'))
+    
+#Rota extrato de venda
+@app.route('/extrato_venda/<int:venda_id>')
+def extrato_venda(venda_id):
+    venda = Venda.query.get_or_404(venda_id)
+    return render_template('extrato_venda.html', venda=venda)
+
 #Rota para buscar livro automatico
 @app.route('/buscar_livro/<int:livro_id>', methods=['GET'])
 def buscar_livro(livro_id):

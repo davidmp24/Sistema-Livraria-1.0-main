@@ -1,0 +1,15 @@
+{% extends "index.html" %}
+
+{% block content %}
+    <h1>Extrato da Venda</h1>
+    <div class="extrato-container">
+        <p><strong>Título do Livro:</strong> {{ venda.livro.titulo }}</p>
+        <p><strong>Quantidade Vendida:</strong> {{ venda.quantidade_vendida }}</p>
+        <p><strong>Valor Total:</strong> R$ {{ venda.valor_total }}</p>
+        <p><strong>Cliente:</strong> {{ venda.cliente.nome_completo }}</p>
+        <p><strong>CPF do Cliente:</strong> {{ venda.cpf_cliente }}</p>
+        <p><strong>Data/Hora da Venda:</strong> {{ venda.data_venda.strftime('%d/%m/%Y %H:%M:%S') }}</p>
+    </div>
+    <button onclick="window.print()">Imprimir Extrato</button>
+
+{% endblock %}
