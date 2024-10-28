@@ -89,28 +89,27 @@
 
     function buscarCliente() {
         const clienteInfo = document.getElementById('cliente_info').value;
-        const clientes = [
-            { nome: "João Silva", cpf: "123.456.789-00" },
-            { nome: "Maria Oliveira", cpf: "987.654.321-00" },
-            { nome: "Carlos Pereira", cpf: "111.222.333-44" }
-        ];
 
-        const resultados = clientes.filter(cliente => 
-            cliente.nome.includes(clienteInfo) || cliente.cpf.includes(clienteInfo)
-        );
-
-        const resultadoLista = document.getElementById('resultado_busca');
-        resultadoLista.innerHTML = ""; // Limpa resultados anteriores
-        if (resultados.length > 0) {
-            resultados.forEach(cliente => {
-                const listItem = document.createElement('li');
-                listItem.textContent = `${cliente.nome} - ${cliente.cpf}`;
-                resultadoLista.appendChild(listItem);
+        fetch(`/buscar_cliente?info=${clienteInfo}`)
+            .then(response => response.json())
+            .then(data => {
+                const resultadoLista = document.getElementById('resultado_busca');
+                resultadoLista.innerHTML = ""; // Limpa resultados anteriores
+                if (data.success && data.clientes.length > 0) {
+                    data.clientes.forEach(cliente => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${cliente.nome} - ${cliente.cpf}`;
+                        resultadoLista.appendChild(listItem);
+                    });
+                    resultadoLista.style.display = 'block';
+                } else {
+                    resultadoLista.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao buscar cliente:', error);
+                alert("Erro ao buscar cliente.");
             });
-            resultadoLista.style.display = 'block';
-        } else {
-            resultadoLista.style.display = 'none';
-        }
     }
 
     function confirmarVenda() {
@@ -149,5 +148,6 @@
         .catch(error => console.error('Erro:', error));
     }
 </script>
+
 
 {% endblock %}

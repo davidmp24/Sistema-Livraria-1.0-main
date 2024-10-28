@@ -383,6 +383,20 @@ def confirmar_venda():
         flash(f"Erro ao salvar a venda: {e}", "error")
         return redirect(url_for('vendas'))
     
+# Rota Buscar Cliente
+# @app.route('/buscar_cliente', methods=['GET'])
+def buscar_cliente():
+    info = request.args.get('info', '')
+    clientes = Cliente.query.filter(
+        (Cliente.nome.ilike(f'%{info}%')) | 
+        (Cliente.cpf.ilike(f'%{info}%'))
+    ).all()
+
+    if clientes:
+        return jsonify(success=True, clientes=[{'nome': c.nome, 'cpf': c.cpf} for c in clientes])
+    else:
+        return jsonify(success=False, clientes=[])
+        
 #Rota extrato de venda
 @app.route('/extrato_venda/<int:venda_id>')
 def extrato_venda(venda_id):
