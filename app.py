@@ -9,6 +9,7 @@ import requests
 from werkzeug.utils import secure_filename
 from flask_migrate import Migrate
 from config import app, db  # Certifique-se de que 'app' e 'db' estão importados corretamente
+import logging
 
 migrate = Migrate(app, db)
 
@@ -353,6 +354,8 @@ def atualizar_livro(livro_id):
 
 #VENDAS
 #########################################
+logging.basicConfig(level=logging.DEBUG)
+
 @app.route('/vendas', methods=['GET', 'POST'])
 def vendas():
     livro_info = None
@@ -375,66 +378,85 @@ def vendas():
 
     return render_template('vendas.html', livro_info=livro_info)
 
-#Rota Salvar vendas 
 @app.route('/confirmar_venda', methods=['POST'])
 def confirmar_venda():
-    try:
-        cliente_id = request.form.get('cliente_id')
-        livro_id = request.form.get('livro_id')
-        quantidade_vendida = int(request.form.get('quantidade'))
-        cpf_cliente = request.form.get('cpf_cliente')
-
-        livro = Livro.query.get(livro_id)
-        if not livro:
-            flash("Livro não encontrado.", "error")
-            return redirect(url_for('vendas'))
-
-        if quantidade_vendida > livro.estoque:
-            flash("Quantidade excede o estoque disponível.", "error")
-            return redirect(url_for('vendas'))
-
-        valor_total = quantidade_vendida * livro.valor
-
-        nova_venda = Venda(
-            cliente_id=cliente_id,
-            livro_id=livro_id,
-            quantidade_vendida=quantidade_vendida,
-            valor_total=valor_total,
-            cpf_cliente=cpf_cliente,
-            data_venda=datetime.utcnow()
-        )
-
-        db.session.add(nova_venda)
-        livro.estoque -= quantidade_vendida
-        db.session.commit()
-
-        flash("Venda confirmada com sucesso!", "success")
-        return redirect(url_for('extrato_venda', venda_id=nova_venda.id))
-
-    except Exception as e:
-        db.session.rollback()
-        flash(f"Erro ao salvar a venda: {e}", "error")
-        return redirect(url_for('vendas'))
+    logging.debug("Recebendo solicitação para confirmar venda...")
     
+    data = request.get_json()  # Recebendo os dados JSON
+    if not data:
+        logging.error("Nenhum dado foi enviado na solicitação.")
+        return jsonify({'success': False, 'error': 'No data provided'}), 400
+
+    # Extraindo os dados
+    livro_id = data.get('livro_id')
+    quantidade = data.get('quantidade')
+    valor_total = data.get('valor_total')
+    cliente_info = data.get('cliente_info')
+
+    logging.debug(f"Dados recebidos: {data}")
+
+    # Verificando se todos os campos estão presentes
+    if not livro_id or not quantidade or not valor_total or not cliente_info:
+        logging.error("Dados ausentes na solicitação.")
+        return jsonify({'success': False, 'error': 'Missing data'}), 400
+
+    # Buscar o cliente pelo info (pode ser CPF ou outro identificador)
+    cliente = Cliente.query.filter((Cliente.identidade == cliente_info) | (Cliente.email == cliente_info)).first()
+    if not cliente:
+        logging.error(f"Cliente não encontrado para o info: {cliente_info}")
+        return jsonify({'success': False, 'error': 'Cliente not found'}), 400
+
+    # Buscar o livro
+    livro = Livro.query.get(livro_id)
+    if not livro:
+        logging.error(f"Livro não encontrado com ID: {livro_id}")
+        return jsonify({'success': False, 'error': 'Livro not found'}), 400
+
+    # Verificando a quantidade em estoque
+    if quantidade > livro.estoque:
+        logging.error(f"Quantidade solicitada: {quantidade} excede o estoque disponível: {livro.estoque}")
+        return jsonify({'success': False, 'error': 'Insufficient stock'}), 400
+
+    # Criar a venda
+    nova_venda = Venda(
+        cliente_id=cliente.id,
+        livro_id=livro_id,
+        data_venda=datetime.utcnow(),
+        valor_pago=livro.valor,
+        quantidade_vendida=quantidade,
+        valor_total=valor_total,
+        cpf_cliente=cliente_info  # Supondo que aqui armazena o CPF ou identidade do cliente
+    )
+
+    # Adicionar a venda ao banco de dados
+    db.session.add(nova_venda)
+    livro.estoque -= quantidade  # Atualizar o estoque do livro
+    db.session.commit()
+
+    logging.debug(f"Venda confirmada com sucesso! ID da venda: {nova_venda.id}")
+    return jsonify({'success': True, 'venda_id': nova_venda.id}), 200
+
+
 # Rota Buscar Cliente
-# @app.route('/buscar_cliente', methods=['GET'])
+@app.route('/buscar_cliente', methods=['GET'])
 def buscar_cliente():
     info = request.args.get('info', '')
     clientes = Cliente.query.filter(
-        (Cliente.nome.ilike(f'%{info}%')) | 
-        (Cliente.cpf.ilike(f'%{info}%'))
+        (Cliente.nome_completo.ilike(f'%{info}%')) | 
+        (Cliente.identidade.ilike(f'%{info}%'))
     ).all()
 
     if clientes:
-        return jsonify(success=True, clientes=[{'nome': c.nome, 'cpf': c.cpf} for c in clientes])
+        return jsonify(success=True, clientes=[{'nome_completo': c.nome_completo, 'identidade': c.identidade} for c in clientes])
     else:
         return jsonify(success=False, clientes=[])
         
 #Rota extrato de venda
-@app.route('/extrato_venda/<int:venda_id>')
+@app.route('/extrato_venda/<int:venda_id>', methods=['GET'])
 def extrato_venda(venda_id):
     venda = Venda.query.get_or_404(venda_id)
     return render_template('extrato_venda.html', venda=venda)
+
 
 #Rota para buscar livro automatico
 @app.route('/buscar_livro/<int:livro_id>', methods=['GET'])

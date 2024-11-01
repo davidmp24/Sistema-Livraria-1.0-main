@@ -76,7 +76,7 @@
         const quantidade = parseInt(document.getElementById('quantidade').value);
         const estoque = {{ livro_info.estoque }};
         const valorUnitario = {{ livro_info.valor }};
-
+        
         if (quantidade > estoque) {
             document.getElementById('estoque-alert').style.display = 'block';
             document.getElementById('valor_total').value = "R$ 0.00";
@@ -98,7 +98,7 @@
                 if (data.success && data.clientes.length > 0) {
                     data.clientes.forEach(cliente => {
                         const listItem = document.createElement('li');
-                        listItem.textContent = `${cliente.nome} - ${cliente.cpf}`;
+                        listItem.textContent = `${cliente.nome_completo} - ${cliente.identidade}`;
                         resultadoLista.appendChild(listItem);
                     });
                     resultadoLista.style.display = 'block';
@@ -113,40 +113,52 @@
     }
 
     function confirmarVenda() {
-        const vendaForm = document.getElementById('vendaForm');
         const quantidade = parseInt(document.getElementById('quantidade').value);
-        const estoque = {{ livro_info.estoque }};
-        
-        if (quantidade > estoque) {
-            alert("Quantidade excedida!");
-            return;
-        }
+         const estoque = {{ livro_info.estoque }};
+          const livroId = document.getElementById('livro_id').value;
 
-        fetch('{{ url_for("confirmar_venda") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                livro_id: document.getElementById('livro_id').value,
-                titulo: document.getElementById('titulo').value,
-                quantidade: quantidade,
-                valor_total: document.getElementById('valor_total').value,
-                cliente_info: document.getElementById('cliente_info').value,
-                data_hora: new Date().toISOString()  // Salva a data/hora atual em formato ISO
-            }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert("Venda registrada com sucesso!");
-                vendaForm.reset();
-            } else {
-                alert("Erro ao registrar a venda.");
-            }
-        })
-        .catch(error => console.error('Erro:', error));
+      if (quantidade > estoque) {
+        alert("Quantidade excedida!");
+        return;
     }
+
+    // Verificar se o ID do livro está presente
+    if (!livroId) {
+        alert("Erro: ID do livro não encontrado.");
+        console.error("ID do livro está vazio.");
+        return;
+    }
+
+    const vendaData = {
+        livro_id: livroId,
+        quantidade: quantidade,
+        valor_total: document.getElementById('valor_total').value.replace("R$ ", "").replace(",", "."),
+        cliente_info: document.getElementById('cliente_info').value,
+    };
+
+    // Log para verificar os dados que estão sendo enviados
+    console.log("Dados da venda a serem enviados:", vendaData);
+
+    fetch('{{ url_for("confirmar_venda") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(vendaData),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.venda_id) {
+            // Redireciona para a página de extrato com o ID da venda
+            window.location.href = `{{ url_for("extrato_venda", venda_id="0") }}` + '/' + data.venda_id;
+        } else {
+            alert("Erro ao registrar a venda: " + (data.error || "Erro desconhecido."));
+        }
+    })
+    .catch(error => console.error('Erro:', error));
+}
+
+
 </script>
 
 

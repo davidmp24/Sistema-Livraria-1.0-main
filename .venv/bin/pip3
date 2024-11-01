@@ -1,4 +1,4 @@
-#!/home/david/Documentos/Trabalho/Sistema-Livraria-1.0-main/.venv/bin/python3
+#!/home/david/Documentos/Trabalho/Sistema-Livraria-1.0-main-1/.venv/bin/python3.12
 # -*- coding: utf-8 -*-
 import re
 import sys
