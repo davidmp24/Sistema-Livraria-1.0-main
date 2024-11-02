@@ -425,7 +425,7 @@ def confirmar_venda():
         valor_pago=livro.valor,
         quantidade_vendida=quantidade,
         valor_total=valor_total,
-        cpf_cliente=cliente_info  # Supondo que aqui armazena o CPF ou identidade do cliente
+
     )
 
     # Adicionar a venda ao banco de dados

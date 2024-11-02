@@ -18,7 +18,7 @@
                 {% if livro_info %}
                 <div class="form-group mt-3">
                     <label for="titulo">Título:</label>
-                    <input type="text" id="titulo" name="titulo" class="form-control" value="{{ livro_info.titulo }}" readonly>
+                    <input type="text" id="titulo" name="titulo" class="form-control" value="{{ livro_info.titulo }}" >
                 </div>
 
                 <div class="form-group">
@@ -31,7 +31,7 @@
 
                 <div class="form-group">
                     <label for="valor_total">Valor Total:</label>
-                    <input type="text" id="valor_total" name="valor_total" class="form-control" value="R$ {{ livro_info.valor }}" readonly>
+                    <input type="text" id="valor_total" name="valor_total" class="form-control" value="R$ {{ livro_info.valor }}" >
                 </div>
 
                 <!-- Campo para CPF ou Nome do Cliente -->
@@ -67,6 +67,7 @@
         <p><strong>Gênero:</strong> {{ livro_info.idade_leitura }}</p>
         <p><strong>Estoque:</strong> {{ livro_info.estoque }}</p>
         <p><strong>Valor:</strong> R$ {{ livro_info.valor }}</p>
+        <button type="button" class="btn btn-secondary mt-2" onclick="marcarLivro({{ livro_info.id }})">Marcar Livro</button>
     </div>
 </div>
 {% endif %}
@@ -77,21 +78,30 @@
         const estoque = {{ livro_info.estoque }};
         const valorUnitario = {{ livro_info.valor }};
         
+        console.log("Calculando valor total...");
+        console.log(`Quantidade: ${quantidade}, Estoque: ${estoque}, Valor Unitário: ${valorUnitario}`);
+        
         if (quantidade > estoque) {
             document.getElementById('estoque-alert').style.display = 'block';
             document.getElementById('valor_total').value = "R$ 0.00";
+            console.warn("Quantidade excedida!");
         } else {
             document.getElementById('estoque-alert').style.display = 'none';
             const valorTotal = quantidade * valorUnitario;
             document.getElementById('valor_total').value = "R$ " + valorTotal.toFixed(2);
+            console.log(`Valor Total Calculado: R$ ${valorTotal.toFixed(2)}`);
         }
     }
 
     function buscarCliente() {
         const clienteInfo = document.getElementById('cliente_info').value;
+        console.log(`Buscando cliente com informação: ${clienteInfo}`);
 
         fetch(`/buscar_cliente?info=${clienteInfo}`)
-            .then(response => response.json())
+            .then(response => {
+                console.log("Resposta da busca de cliente:", response);
+                return response.json();
+            })
             .then(data => {
                 const resultadoLista = document.getElementById('resultado_busca');
                 resultadoLista.innerHTML = ""; // Limpa resultados anteriores
@@ -104,6 +114,7 @@
                     resultadoLista.style.display = 'block';
                 } else {
                     resultadoLista.style.display = 'none';
+                    console.warn("Nenhum cliente encontrado.");
                 }
             })
             .catch(error => {
@@ -112,54 +123,51 @@
             });
     }
 
+    function marcarLivro(id) {
+        console.log(`Marcar livro: ${id}`);
+        const livroIdField = document.getElementById("livro_id");
+        livroIdField.value = id;
+        livroIdField.setAttribute("readonly", true); // Garante que o campo não seja editável após marcação
+        alert("Livro marcado com sucesso!");
+    }
+
     function confirmarVenda() {
-        const quantidade = parseInt(document.getElementById('quantidade').value);
-         const estoque = {{ livro_info.estoque }};
-          const livroId = document.getElementById('livro_id').value;
+    const livroId = document.getElementById("livro_id").value; // O ID do livro
+    const quantidade = document.getElementById("quantidade").value; // A quantidade escolhida
+    const valorTotal = document.getElementById("valor_total").value.replace("R$ ", "").replace(",", "."); // Valor total formatado
+    const clienteInfo = document.getElementById("cliente_info").value; // Informações do cliente
 
-      if (quantidade > estoque) {
-        alert("Quantidade excedida!");
-        return;
-    }
-
-    // Verificar se o ID do livro está presente
-    if (!livroId) {
-        alert("Erro: ID do livro não encontrado.");
+    if (!livroId) { 
         console.error("ID do livro está vazio.");
+        alert("Por favor, selecione um livro antes de confirmar a venda.");
         return;
     }
 
-    const vendaData = {
-        livro_id: livroId,
-        quantidade: quantidade,
-        valor_total: document.getElementById('valor_total').value.replace("R$ ", "").replace(",", "."),
-        cliente_info: document.getElementById('cliente_info').value,
-    };
-
-    // Log para verificar os dados que estão sendo enviados
-    console.log("Dados da venda a serem enviados:", vendaData);
-
-    fetch('{{ url_for("confirmar_venda") }}', {
+    // Constrói a requisição POST
+    fetch(`/confirmar_venda`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
         },
-        body: JSON.stringify(vendaData),
+        body: JSON.stringify({
+            livro_id: livroId,
+            quantidade: parseInt(quantidade),
+            valor_total: parseFloat(valorTotal),
+            cliente_info: clienteInfo
+        })
     })
     .then(response => response.json())
     .then(data => {
-        if (data.success && data.venda_id) {
-            // Redireciona para a página de extrato com o ID da venda
-            window.location.href = `{{ url_for("extrato_venda", venda_id="0") }}` + '/' + data.venda_id;
+        if (data.success) {
+            window.location.href = `{{ url_for("extrato_venda", venda_id=0) }}`.replace('0', data.venda_id);
         } else {
-            alert("Erro ao registrar a venda: " + (data.error || "Erro desconhecido."));
+            alert("Erro ao confirmar venda: " + data.error);
         }
     })
-    .catch(error => console.error('Erro:', error));
+    .catch(error => console.error('Erro na requisição:', error));
 }
 
 
 </script>
-
 
 {% endblock %}

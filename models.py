@@ -54,7 +54,6 @@ class Venda(db.Model):
     valor_pago = db.Column(db.Float, nullable=False)
     quantidade_vendida = db.Column(db.Integer, nullable=False)
     valor_total = db.Column(db.Float, nullable=False)
-    cpf_cliente = db.Column(db.String(11), nullable=False)
 
     # Relacionamentos
     cliente = db.relationship('Cliente', backref=db.backref('vendas', lazy=True))
