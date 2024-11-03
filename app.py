@@ -363,10 +363,13 @@ def vendas():
         livro_id = request.form.get('livro_id')
 
         # Buscar livro no banco de dados
-        livro = Livro.query.get(livro_id)
+        with db.session() as session:
+          livro = session.get(Livro, livro_id)
+
         if livro:
             livro_info = {
                 'capa': livro.capa_livro,
+                'id': livro.id,
                 'titulo': livro.titulo,
                 'autor': livro.autor,
                 'genero': livro.idade_leitura,  # ou outro campo referente ao gênero
@@ -459,12 +462,14 @@ def extrato_venda(venda_id):
 
 
 #Rota para buscar livro automatico
-@app.route('/buscar_livro/<int:livro_id>', methods=['GET'])
+@app.route('/buscar_livro/<int:livro_id>')
 def buscar_livro(livro_id):
-    livro = Livro.query.get(livro_id)
+    with db.session() as session:
+        livro = session.get(Livro, livro_id)
     if livro:
         return jsonify({
             'capa': livro.capa_url,
+            'id': livro.id,
             'titulo': livro.titulo,
             'autor': livro.autor,
             'idade_leitura': livro.idade_leitura,
@@ -476,6 +481,29 @@ def buscar_livro(livro_id):
 
 
 #FIM#########################################################
+
+#CONTROLE DE CAIXA ##########################################
+@app.route('/controle_caixa')
+def controle_caixa():
+    # Recuperar todas as vendas do banco de dados
+    vendas = Venda.query.all()
+    
+    # Calcular o total em caixa
+    total_caixa = sum(venda.valor_pago for venda in vendas)
+
+    # Formatar os valores como strings de moeda (ex: "R$ 100,00")
+    for venda in vendas:
+        venda.valor_pago = f"R$ {venda.valor_pago:.2f}".replace('.', ',')  # Converte para formato brasileiro
+
+    total_caixa = f"R$ {total_caixa:.2f}".replace('.', ',')  # Converte para formato brasileiro
+
+    return render_template('controle_caixa.html', vendas=vendas, total_caixa=total_caixa)
+
+@app.template_filter('currency')
+def currency_filter(value):
+    """Formata um número como moeda brasileira."""
+    return f"R$ {value:.2f}".replace('.', ',')
+#FIM ########################################################
 
 # CONFIGURAÇÃO
 
