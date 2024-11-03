@@ -2,14 +2,28 @@
 
 {% block content %}
     <h1>Extrato da Venda</h1>
+    <div class="livro-capa">
+        <img src="{{ venda.livro.capa_livro }}" alt="Capa do Livro" class="livro-imagem">
+    </div>
     <div class="extrato-container">
+        <p><strong>ID:</strong> {{ venda.livro.id }}</p>
         <p><strong>Título do Livro:</strong> {{ venda.livro.titulo }}</p>
         <p><strong>Quantidade Vendida:</strong> {{ venda.quantidade_vendida }}</p>
         <p><strong>Valor Total:</strong> R$ {{ venda.valor_total }}</p>
         <p><strong>Cliente:</strong> {{ venda.cliente.nome_completo }}</p>
-        <p><strong>CPF do Cliente:</strong> {{ venda.cpf_cliente }}</p>
+        <p><strong>CPF do Cliente:</strong> {{ venda.cliente.identidade }}</p>
         <p><strong>Data/Hora da Venda:</strong> {{ venda.data_venda.strftime('%d/%m/%Y %H:%M:%S') }}</p>
+    <!-- Botões de Imprimir e Voltar -->
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button class="btn btn-primary" style="margin-left: 10px; height: 38px;" onclick="window.print()">Imprimir Extrato</button>
+        <button class="btn btn-primary" style="margin-left: 10px; height: 38px;" onclick="voltarPagina()">Voltar</button>
     </div>
-    <button onclick="window.print()">Imprimir Extrato</button>
+
+    <!-- Script para redirecionamento ao clicar em Voltar -->
+    <script>
+        function voltarPagina() {
+            window.location.href = "{{ url_for('vendas') }}";
+        }
+    </script>
 
 {% endblock %}

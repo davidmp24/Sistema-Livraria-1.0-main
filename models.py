@@ -33,7 +33,8 @@ class Livro(db.Model):
     def __repr__(self):
         return f'<Livro {self.titulo}>'
 
-    def __init__(self, titulo, autor, editora, idade_leitura, isbn, ano, num_paginas, valor, capa_livro, estoque):
+    def __init__(self, id, titulo, autor, editora, idade_leitura, isbn, ano, num_paginas, valor, capa_livro, estoque):
+        self.id = id
         self.titulo = titulo
         self.autor = autor
         self.editora = editora

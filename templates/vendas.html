@@ -7,6 +7,8 @@
     <div class="row-container" style="display: flex; gap: 20px;">
         <div class="pesquisa-livro" style="flex: 1;">
             <form action="{{ url_for('vendas') }}" method="POST" id="vendaForm">
+                
+                
                 <!-- Campo de ID do livro e botão de busca -->
                 <div class="form-group" style="display: flex; align-items: center;">
                     <label for="livro_id" style="margin-right: 10px;">ID do Livro:</label>
@@ -14,11 +16,11 @@
                     <button type="submit" class="btn btn-primary" style="margin-left: 10px; height: 38px;">Buscar</button>
                 </div>
 
-                <!-- Novos campos para Título, Quantidade, Valor Total e Cliente -->
                 {% if livro_info %}
+                <!-- Campo para ID do Livro entre Título e Quantidade -->
                 <div class="form-group mt-3">
                     <label for="titulo">Título:</label>
-                    <input type="text" id="titulo" name="titulo" class="form-control" value="{{ livro_info.titulo }}" >
+                    <input type="text" id="titulo" name="titulo" class="form-control" value="{{ livro_info.titulo }}" readonly>
                 </div>
 
                 <div class="form-group">
@@ -31,7 +33,7 @@
 
                 <div class="form-group">
                     <label for="valor_total">Valor Total:</label>
-                    <input type="text" id="valor_total" name="valor_total" class="form-control" value="R$ {{ livro_info.valor }}" >
+                    <input type="text" id="valor_total" name="valor_total" class="form-control" value="R$ {{ livro_info.valor }}" readonly>
                 </div>
 
                 <!-- Campo para CPF ou Nome do Cliente -->
@@ -42,6 +44,12 @@
                         <button type="button" class="btn btn-info" onclick="buscarCliente()">Buscar</button>
                     </div>
                     <ul id="resultado_busca" class="mt-2" style="list-style-type: none; padding: 0; display: none;"></ul>
+                </div>
+
+                <!-- Exibir cliente selecionado -->
+                <div id="clienteSelecionado" class="form-group">
+                    <h3>Cliente Selecionado:</h3>
+                    <p id="clienteSelecionadoNome"></p>
                 </div>
 
                 <!-- Botão de confirmação de venda -->
@@ -62,13 +70,16 @@
 
     <!-- Informações do livro ao lado da capa -->
     <div class="livro-info">
+        <p><strong>Valor ID:</strong> {{ livro_info.id }}</p>
         <p><strong>Título:</strong> {{ livro_info.titulo }}</p>
         <p><strong>Autor:</strong> {{ livro_info.autor }}</p>
         <p><strong>Gênero:</strong> {{ livro_info.idade_leitura }}</p>
         <p><strong>Estoque:</strong> {{ livro_info.estoque }}</p>
         <p><strong>Valor:</strong> R$ {{ livro_info.valor }}</p>
-        <button type="button" class="btn btn-secondary mt-2" onclick="marcarLivro({{ livro_info.id }})">Marcar Livro</button>
+        <button type="button" class="btn btn-secondary" onclick="marcarLivro({{ livro_info.id }})">Marcar Livro</button>
     </div>
+    
+    
 </div>
 {% endif %}
 
@@ -78,43 +89,36 @@
         const estoque = {{ livro_info.estoque }};
         const valorUnitario = {{ livro_info.valor }};
         
-        console.log("Calculando valor total...");
-        console.log(`Quantidade: ${quantidade}, Estoque: ${estoque}, Valor Unitário: ${valorUnitario}`);
-        
         if (quantidade > estoque) {
             document.getElementById('estoque-alert').style.display = 'block';
             document.getElementById('valor_total').value = "R$ 0.00";
-            console.warn("Quantidade excedida!");
         } else {
             document.getElementById('estoque-alert').style.display = 'none';
             const valorTotal = quantidade * valorUnitario;
             document.getElementById('valor_total').value = "R$ " + valorTotal.toFixed(2);
-            console.log(`Valor Total Calculado: R$ ${valorTotal.toFixed(2)}`);
         }
     }
 
     function buscarCliente() {
         const clienteInfo = document.getElementById('cliente_info').value;
-        console.log(`Buscando cliente com informação: ${clienteInfo}`);
 
         fetch(`/buscar_cliente?info=${clienteInfo}`)
-            .then(response => {
-                console.log("Resposta da busca de cliente:", response);
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
                 const resultadoLista = document.getElementById('resultado_busca');
-                resultadoLista.innerHTML = ""; // Limpa resultados anteriores
+                resultadoLista.innerHTML = "";
                 if (data.success && data.clientes.length > 0) {
                     data.clientes.forEach(cliente => {
                         const listItem = document.createElement('li');
-                        listItem.textContent = `${cliente.nome_completo} - ${cliente.identidade}`;
+                        listItem.innerHTML = `
+                            ${cliente.nome_completo} - CPF: ${cliente.identidade} 
+                            <button type="button" onclick="selecionarCliente('${cliente.nome_completo}', '${cliente.identidade}')">Selecionar</button>
+                        `;
                         resultadoLista.appendChild(listItem);
                     });
                     resultadoLista.style.display = 'block';
                 } else {
                     resultadoLista.style.display = 'none';
-                    console.warn("Nenhum cliente encontrado.");
                 }
             })
             .catch(error => {
@@ -123,51 +127,57 @@
             });
     }
 
+    function selecionarCliente(nome, identidade) {
+        document.getElementById("clienteSelecionadoNome").innerText = `Nome: ${nome} - CPF: ${identidade}`;
+        document.getElementById("cliente_info").value = identidade;
+        document.getElementById("resultado_busca").style.display = 'none';
+    }
+
     function marcarLivro(id) {
-        console.log(`Marcar livro: ${id}`);
-        const livroIdField = document.getElementById("livro_id");
-        livroIdField.value = id;
-        livroIdField.setAttribute("readonly", true); // Garante que o campo não seja editável após marcação
-        alert("Livro marcado com sucesso!");
+        if (id) {
+            document.getElementById("livro_id").value = id;
+            document.getElementById("livro_id").setAttribute("readonly", true);
+            alert("Livro marcado com sucesso! O ID foi preenchido automaticamente.");
+        } else {
+            alert("Erro: ID do livro não foi encontrado.");
+        }
     }
 
     function confirmarVenda() {
-    const livroId = document.getElementById("livro_id").value; // O ID do livro
-    const quantidade = document.getElementById("quantidade").value; // A quantidade escolhida
-    const valorTotal = document.getElementById("valor_total").value.replace("R$ ", "").replace(",", "."); // Valor total formatado
-    const clienteInfo = document.getElementById("cliente_info").value; // Informações do cliente
+        const livroId = document.getElementById("livro_id").value;
+        const quantidade = document.getElementById("quantidade").value;
+        const valorTotal = document.getElementById("valor_total").value.replace("R$ ", "").replace(",", ".");
+        const clienteInfo = document.getElementById("cliente_info").value;
 
-    if (!livroId) { 
-        console.error("ID do livro está vazio.");
-        alert("Por favor, selecione um livro antes de confirmar a venda.");
-        return;
-    }
-
-    // Constrói a requisição POST
-    fetch(`/confirmar_venda`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            livro_id: livroId,
-            quantidade: parseInt(quantidade),
-            valor_total: parseFloat(valorTotal),
-            cliente_info: clienteInfo
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            window.location.href = `{{ url_for("extrato_venda", venda_id=0) }}`.replace('0', data.venda_id);
-        } else {
-            alert("Erro ao confirmar venda: " + data.error);
+        if (!livroId) { 
+            alert("Por favor, selecione um livro antes de confirmar a venda.");
+            return;
         }
-    })
-    .catch(error => console.error('Erro na requisição:', error));
-}
 
-
+        fetch(`/confirmar_venda`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                livro_id: livroId,
+                quantidade: parseInt(quantidade),
+                valor_total: parseFloat(valorTotal),
+                cliente_info: clienteInfo
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = `{{ url_for("extrato_venda", venda_id=0) }}`.replace('0', data.venda_id);
+            } else {
+                alert("Erro ao confirmar venda: " + data.error);
+            }
+        })
+        .catch(error => {
+            console.error("Erro ao confirmar venda:", error);
+            alert("Erro ao confirmar venda.");
+        });
+    }
 </script>
-
 {% endblock %}
