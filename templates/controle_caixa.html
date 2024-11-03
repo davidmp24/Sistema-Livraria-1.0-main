@@ -1,0 +1,30 @@
+<table class="table">
+    <thead>
+        <tr>
+            <th>Capa</th>
+            <th>ID</th>
+            <th>Título</th>
+            <th>Quantidade</th>
+            <th>Valor</th>
+            <th>Cliente</th>
+            <th>Identidade</th>
+            <th>Data/Hora</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for venda in vendas %}
+        <tr>
+            <td><img src="{{ venda.livro.capa }}" alt="Capa do Livro" style="width: 50px;"></td>
+            <td>{{ venda.id }}</td>
+            <td>{{ venda.livro.titulo }}</td>
+            <td>{{ venda.quantidade }}</td>
+            <td>{{ venda.valor_pago | currency }}</td>
+            <td>{{ venda.cliente.nome }}</td>
+            <td>{{ venda.cliente.identidade }}</td>
+            <td>{{ venda.data_venda.strftime('%d/%m/%Y %H:%M') }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h4 class="mt-4">Total em Caixa: {{ total_caixa | currency }}</h4>
