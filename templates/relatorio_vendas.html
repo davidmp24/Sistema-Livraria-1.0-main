@@ -1,0 +1,29 @@
+{% block content %}
+    <h1>Relatório de Vendas</h1>
+    <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Livro ID</th>
+                <th>Data de Venda</th>
+                <th>Valor Pago</th>
+                <th>Quantidade Vendida</th>
+                <th>Valor Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for venda in vendas %}
+            <tr>
+                <td>{{ venda.id }}</td>
+                <td>{{ venda.cliente.nome }}</td>
+                <td>{{ venda.livro_id }}</td>
+                <td>{{ venda.data_venda }}</td>
+                <td>{{ venda.valor_pago }}</td>
+                <td>{{ venda.quantidade_vendida }}</td>
+                <td>{{ venda.valor_total }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
