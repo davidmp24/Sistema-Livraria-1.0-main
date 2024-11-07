@@ -1,5 +1,7 @@
 from config import db
 from datetime import datetime
+from sqlalchemy import Float  # Certifique-se de importar o tipo Float
+
 
 class Cliente(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -29,12 +31,11 @@ class Livro(db.Model):
     valor = db.Column(db.Float, nullable=False)
     capa_livro = db.Column(db.String(200), nullable=True) 
     estoque = db.Column(db.Integer, default=0)
-
+    
     def __repr__(self):
         return f'<Livro {self.titulo}>'
 
-    def __init__(self, id, titulo, autor, editora, idade_leitura, isbn, ano, num_paginas, valor, capa_livro, estoque):
-        self.id = id
+    def __init__(self, titulo, autor, editora, idade_leitura, isbn, ano, num_paginas, valor, capa_livro, estoque):
         self.titulo = titulo
         self.autor = autor
         self.editora = editora
@@ -52,7 +53,7 @@ class Venda(db.Model):
     cliente_id = db.Column(db.Integer, db.ForeignKey('cliente.id'), nullable=False)
     livro_id = db.Column(db.Integer, db.ForeignKey('livro.id'), nullable=False)
     data_venda = db.Column(db.DateTime, default=datetime.utcnow)
-    valor_pago = db.Column(db.Float, nullable=False)
+    valor_pago = db.Column(Float)
     quantidade_vendida = db.Column(db.Integer, nullable=False)
     valor_total = db.Column(db.Float, nullable=False)
 

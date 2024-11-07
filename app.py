@@ -479,25 +479,45 @@ def buscar_livro(livro_id):
     else:
         return jsonify(None), 404
 
+@app.route('/atualizar_venda', methods=['POST'])
+def atualizar_venda():
+    data = request.get_json()
+    venda_id = data['venda_id']
+    valor_pago = data['valor_pago']
+
+    # Atualizar a venda no banco de dados
+    venda = Venda.query.get(venda_id)
+    if venda:
+        venda.valor_pago = valor_pago
+        db.session.commit()
+        return {'message': 'Venda atualizada com sucesso'}, 200
+    return {'message': 'Venda não encontrada'}, 404
+
+from flask import request
+
+@app.route('/controle_caixa', methods=['GET'])
+def controle_caixa():
+    cliente = request.args.get('cliente')
+    titulo = request.args.get('titulo')
+    data = request.args.get('data')
+
+    query = Venda.query
+
+    # Filtros aplicados à consulta de vendas
+    if cliente:
+        query = query.join(Cliente).filter(Cliente.nome_completo.ilike(f"%{cliente}%"))
+    if titulo:
+        query = query.join(Livro).filter(Livro.titulo.ilike(f"%{titulo}%"))
+    if data:
+        query = query.filter(Venda.data_venda.contains(data))  # Ajuste para data conforme necessário
+
+    vendas = query.all()
+
+    return render_template('controle_caixa.html', vendas=vendas)
 
 #FIM#########################################################
 
 #CONTROLE DE CAIXA ##########################################
-@app.route('/controle_caixa')
-def controle_caixa():
-    # Recuperar todas as vendas do banco de dados
-    vendas = Venda.query.all()
-    
-    # Calcular o total em caixa
-    total_caixa = sum(venda.valor_pago for venda in vendas)
-
-    # Formatar os valores como strings de moeda (ex: "R$ 100,00")
-    for venda in vendas:
-        venda.valor_pago = f"R$ {venda.valor_pago:.2f}".replace('.', ',')  # Converte para formato brasileiro
-
-    total_caixa = f"R$ {total_caixa:.2f}".replace('.', ',')  # Converte para formato brasileiro
-
-    return render_template('controle_caixa.html', vendas=vendas, total_caixa=total_caixa)
 
 @app.template_filter('currency')
 def currency_filter(value):

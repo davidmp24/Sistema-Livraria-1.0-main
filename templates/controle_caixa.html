@@ -1,30 +1,46 @@
-<table class="table">
-    <thead>
-        <tr>
-            <th>Capa</th>
-            <th>ID</th>
-            <th>Título</th>
-            <th>Quantidade</th>
-            <th>Valor</th>
-            <th>Cliente</th>
-            <th>Identidade</th>
-            <th>Data/Hora</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for venda in vendas %}
-        <tr>
-            <td><img src="{{ venda.livro.capa }}" alt="Capa do Livro" style="width: 50px;"></td>
-            <td>{{ venda.id }}</td>
-            <td>{{ venda.livro.titulo }}</td>
-            <td>{{ venda.quantidade }}</td>
-            <td>{{ venda.valor_pago | currency }}</td>
-            <td>{{ venda.cliente.nome }}</td>
-            <td>{{ venda.cliente.identidade }}</td>
-            <td>{{ venda.data_venda.strftime('%d/%m/%Y %H:%M') }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+{% extends "index.html" %}
 
-<h4 class="mt-4">Total em Caixa: {{ total_caixa | currency }}</h4>
+{% block content %}
+    <title>Controle de Caixa</title>
+</head>
+<body>
+    <h1>Controle de Caixa</h1>
+
+    <!-- Formulário de Filtro -->
+    <form method="GET" action="/controle_caixa">
+        <label for="cliente">Cliente:</label>
+        <input type="text" name="cliente" id="cliente" placeholder="Nome do cliente">
+
+        <label for="titulo">Título do Livro:</label>
+        <input type="text" name="titulo" id="titulo" placeholder="Título do livro">
+
+        <label for="data">Data (AAAA-MM-DD):</label>
+        <input type="date" name="data" id="data">
+
+        <button type="submit" class="btn btn-primary" >Filtrar</button>
+    </form>
+
+    <!-- Tabela de Vendas -->
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Cliente</th>
+                <th>Valor Pago</th>
+                <th>Data/Hora</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for venda in vendas %}
+            <tr>
+                <td>{{ venda.id }}</td>
+                <td>{{ venda.livro.titulo }}</td>
+                <td>{{ venda.cliente.nome_completo }}</td>
+                <td>{{ venda.valor_pago }}</td>
+                <td>{{ venda.data_venda.strftime('%d/%m/%Y %H:%M') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endblock %}
