@@ -3,13 +3,14 @@ from flask import Flask, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, current_user
 from config import app, db
 from models import Cliente, Livro, Venda  # Certifique-se de que Livro está importado corretamente
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import os
 import requests
 from werkzeug.utils import secure_filename
 from flask_migrate import Migrate
 from config import app, db  # Certifique-se de que 'app' e 'db' estão importados corretamente
 import logging
+from sqlalchemy import func
 
 migrate = Migrate(app, db)
 
@@ -31,7 +32,8 @@ USERS = {
 @app.route('/')
 def home():
     if 'username' in session:
-        return render_template('index.html')
+        vendas = Venda.query.all()  # Consulta todas as vendas
+        return render_template('index.html', vendas=vendas)  # Passa as vendas para o template
     return redirect(url_for('login'))
 
 # FIM HOME
@@ -536,6 +538,52 @@ def configuracao():
 # FIM CONFIGURAÇÃO
 #########################################
 
+@app.route('/relatorio-vendas')
+def relatorio_vendas():
+    vendas = Venda.query.all()  # Consulta todas as vendas
+    return render_template('relatorio_vendas.html', vendas=vendas)
+
+
+# Função para calcular as vendas do dia
+def calcular_vendas_dia_total():
+    hoje = datetime.now(timezone.utc).date()  # Obtém a data atual (sem hora) com fuso horário UTC
+    total_vendas_dia = db.session.query(func.sum(Venda.valor_total)).filter(func.date(Venda.data_venda) == hoje).scalar()
+    return total_vendas_dia if total_vendas_dia else 0.00  # Retorna 0 se não houver vendas
+
+# Função para calcular as vendas da semana
+def calcular_vendas_semana_total():
+    hoje = datetime.now(timezone.utc).date()  # Obtém a data atual com fuso horário UTC
+    inicio_semana = hoje - timedelta(days=hoje.weekday())  # Obtém a data da última segunda-feira
+    total_vendas_semana = db.session.query(func.sum(Venda.valor_total)).filter(Venda.data_venda >= inicio_semana).scalar()
+    return total_vendas_semana if total_vendas_semana else 0.00  # Retorna 0 se não houver vendas
+
+@app.route('/dashboard')
+def dashboard():
+    # Calcular o total de vendas do dia
+    vendas_dia_total = db.session.query(db.func.sum(Venda.valor_total)).filter(db.func.date(Venda.data_venda) == datetime.today().date()).scalar() or 0.00
+    vendas_dia_quantidade = db.session.query(db.func.count(Venda.id)).filter(db.func.date(Venda.data_venda) == datetime.today().date()).scalar() or 0
+
+    # Calcular o total de vendas da semana
+    inicio_da_semana = datetime.today() - timedelta(days=datetime.today().weekday())  # Segunda-feira da semana atual
+    vendas_semana_total = db.session.query(db.func.sum(Venda.valor_total)).filter(Venda.data_venda >= inicio_da_semana).scalar() or 0.00
+    vendas_semana_quantidade = db.session.query(db.func.count(Venda.id)).filter(Venda.data_venda >= inicio_da_semana).scalar() or 0
+
+    # Preparar os dados para os gráficos de vendas
+    vendas_dia_labels = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta']  # Exemplo
+    vendas_dia_dados = [20, 15, 30, 25, 40, 10, 50]  # Exemplo de dados
+    vendas_semana_labels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']  # Dias da semana
+    vendas_semana_dados = [100, 120, 150, 200, 180, 160, 140]  # Exemplo de dados de vendas semanais
+
+    # Passando os dados para o template
+    return render_template('dashboard.html',
+                           vendas_dia_total=vendas_dia_total,
+                           vendas_dia_quantidade=vendas_dia_quantidade,
+                           vendas_semana_total=vendas_semana_total,
+                           vendas_semana_quantidade=vendas_semana_quantidade,
+                           vendas_dia_labels=vendas_dia_labels,
+                           vendas_dia_dados=vendas_dia_dados,
+                           vendas_semana_labels=vendas_semana_labels,
+                           vendas_semana_dados=vendas_semana_dados)
 
 if __name__ == '__main__':
     with app.app_context():

@@ -1,29 +1,125 @@
 {% block content %}
-    <h1>Relatório de Vendas</h1>
-    <table border="1" cellpadding="5" cellspacing="0">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Cliente</th>
-                <th>Livro ID</th>
-                <th>Data de Venda</th>
-                <th>Valor Pago</th>
-                <th>Quantidade Vendida</th>
-                <th>Valor Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for venda in vendas %}
-            <tr>
-                <td>{{ venda.id }}</td>
-                <td>{{ venda.cliente.nome }}</td>
-                <td>{{ venda.livro_id }}</td>
-                <td>{{ venda.data_venda }}</td>
-                <td>{{ venda.valor_pago }}</td>
-                <td>{{ venda.quantidade_vendida }}</td>
-                <td>{{ venda.valor_total }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+
+<div class="container mt-5">
+    <h1 class="mb-4 text-primary">Dashboard de Vendas</h1>
+    
+    <!-- Resumo de Vendas -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card text-white bg-info mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Vendas do Dia</h5>
+                    <!-- Verificação com default para garantir que o valor é numérico -->
+                    <p class="card-text">Total: R$ {{ vendas_dia_total | default(0.00) | round(2) }}</p>
+                    <p class="card-text">Quantidade: {{ vendas_dia_quantidade }}</p>
+                    
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Vendas da Semana</h5>
+                    <!-- Verificação com default para garantir que o valor é numérico -->
+                    <p class="card-text">Total: R$ 
+                        {{ vendas_semana_total | default(0.00) | round(2) }}
+                    </p>
+                    <p class="card-text">Quantidade: {{ vendas_semana_quantidade }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos de Vendas -->
+    <div class="row">
+        <div class="col-md-6">
+            <h4>Vendas Diárias</h4>
+            <canvas id="vendasDiaChart"></canvas>
+        </div>
+        <div class="col-md-6">
+            <h4>Vendas Semanais</h4>
+            <canvas id="vendasSemanaChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Script para Gráficos -->
+<script>
+    const vendasDiaChart = new Chart(document.getElementById('vendasDiaChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: {{ vendas_dia_labels | safe }},
+            datasets: [{
+                label: 'Vendas do Dia (R$)',
+                data: {{ vendas_dia_dados | safe }},
+                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    const vendasSemanaChart = new Chart(document.getElementById('vendasSemanaChart').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: {{ vendas_semana_labels | safe }},
+            datasets: [{
+                label: 'Vendas da Semana (R$)',
+                data: {{ vendas_semana_dados | safe }},
+                backgroundColor: 'rgba(54, 162, 235, 0.4)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 2,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+
+<div class="container mt-5">
+    <h1 class="mb-4 text-primary">Relatório de Vendas</h1>
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Cliente</th>
+                    <th scope="col">Livro ID</th>
+                    <th scope="col">Data de Venda</th>
+                    <th scope="col">Valor Pago</th>
+                    <th scope="col">Quantidade Vendida</th>
+                    <th scope="col">Valor Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for venda in vendas %}
+                <tr>
+                    <td>{{ venda.id }}</td>
+                    <td>{{ venda.cliente.nome }}</td>
+                    <td>{{ venda.livro_id }}</td>
+                    <td>{{ venda.data_venda.strftime('%d/%m/%Y') }}</td>
+                    <td>R$ {{ "{:.2f}".format(venda.valor_pago) }}</td>
+                    <td>{{ venda.quantidade_vendida }}</td>
+                    <td>R$ {{ "{:.2f}".format(venda.valor_total) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}
