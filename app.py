@@ -540,7 +540,10 @@ def configuracao():
 
 @app.route('/relatorio-vendas')
 def relatorio_vendas():
-    vendas = Venda.query.all()  # Consulta todas as vendas
+    # Consulta as vendas com os clientes associados
+    vendas = Venda.query.join(Cliente).all()  # Realiza a junção entre as tabelas Venda e Cliente
+    
+    # Passa as vendas para o template
     return render_template('relatorio_vendas.html', vendas=vendas)
 
 
@@ -560,13 +563,12 @@ def calcular_vendas_semana_total():
 @app.route('/dashboard')
 def dashboard():
     # Calcular o total de vendas do dia
-    vendas_dia_total = db.session.query(db.func.sum(Venda.valor_total)).filter(db.func.date(Venda.data_venda) == datetime.today().date()).scalar() or 0.00
+    vendas_dia_total = calcular_vendas_dia_total()  # Função que já retorna o total de vendas do dia
     vendas_dia_quantidade = db.session.query(db.func.count(Venda.id)).filter(db.func.date(Venda.data_venda) == datetime.today().date()).scalar() or 0
 
     # Calcular o total de vendas da semana
-    inicio_da_semana = datetime.today() - timedelta(days=datetime.today().weekday())  # Segunda-feira da semana atual
-    vendas_semana_total = db.session.query(db.func.sum(Venda.valor_total)).filter(Venda.data_venda >= inicio_da_semana).scalar() or 0.00
-    vendas_semana_quantidade = db.session.query(db.func.count(Venda.id)).filter(Venda.data_venda >= inicio_da_semana).scalar() or 0
+    vendas_semana_total = calcular_vendas_semana_total()  # Função que já retorna o total de vendas da semana
+    vendas_semana_quantidade = db.session.query(db.func.count(Venda.id)).filter(Venda.data_venda >= datetime.today() - timedelta(days=datetime.today().weekday())).scalar() or 0
 
     # Preparar os dados para os gráficos de vendas
     vendas_dia_labels = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta']  # Exemplo

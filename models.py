@@ -18,6 +18,8 @@ class Cliente(db.Model):
     escolaridade = db.Column(db.String(50), nullable=False)
     data_cadastro = db.Column(db.DateTime, default=datetime.utcnow)
 
+    def __repr__(self):
+        return f'<Cliente {self.nome_completo}>'
 
 class Livro(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -64,7 +66,7 @@ class Venda(db.Model):
     def __repr__(self):
         # Acessando o título do livro através da relação livro
         return f'<Venda {self.id} - Cliente: {self.cliente.nome_completo} - Livro: {self.livro.titulo} - Quantidade: {self.quantidade_vendida}>'
-        
+
 
 def init_db(app):
     with app.app_context():

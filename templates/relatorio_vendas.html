@@ -110,7 +110,8 @@
                 {% for venda in vendas %}
                 <tr>
                     <td>{{ venda.id }}</td>
-                    <td>{{ venda.cliente.nome }}</td>
+                    <!-- Verificação para garantir que o cliente existe -->
+                    <td>{{ venda.cliente.nome_completo if venda.cliente else 'Cliente Não Encontrado' }}</td>
                     <td>{{ venda.livro_id }}</td>
                     <td>{{ venda.data_venda.strftime('%d/%m/%Y') }}</td>
                     <td>R$ {{ "{:.2f}".format(venda.valor_pago) }}</td>
@@ -122,4 +123,5 @@
         </table>
     </div>
 </div>
+
 {% endblock %}
