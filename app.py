@@ -32,7 +32,9 @@ USERS = {
 @app.route('/')
 def home():
     if 'username' in session:
+        
         vendas = Venda.query.all()  # Consulta todas as vendas
+        
         return render_template('index.html', vendas=vendas)  # Passa as vendas para o template
     return redirect(url_for('login'))
 
@@ -542,9 +544,17 @@ def configuracao():
 def relatorio_vendas():
     # Consulta as vendas com os clientes associados
     vendas = Venda.query.join(Cliente).all()  # Realiza a junção entre as tabelas Venda e Cliente
+       
+  # Consultas ao banco de dados para obter as vendas do dia e da semana
+    vendas_dia = db.session.query(Venda).filter(Venda.data_venda == datetime.now(timezone.utc).date()).all()
+    vendas_semana = db.session.query(Venda).filter(Venda.data_venda >= datetime.now(timezone.utc) - timedelta(weeks=1)).all()
     
-    # Passa as vendas para o template
-    return render_template('relatorio_vendas.html', vendas=vendas)
+    # Processar dados para gráficos
+    vendas_dia_total = sum([v.valor_total for v in vendas_dia])
+    vendas_semana_total = sum([v.valor_total for v in vendas_semana])
+
+    return render_template('relatorio_vendas.html', vendas=vendas, vendas_dia=vendas_dia, vendas_semana=vendas_semana,
+                           vendas_dia_total=vendas_dia_total, vendas_semana_total=vendas_semana_total)
 
 
 # Função para calcular as vendas do dia
