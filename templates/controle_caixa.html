@@ -17,7 +17,7 @@
         <label for="data">Data (AAAA-MM-DD):</label>
         <input type="date" name="data" id="data">
 
-        <button type="submit" class="btn btn-primary" >Filtrar</button>
+        <button type="submit" class="btn btn-primary">Filtrar</button>
     </form>
 
     <!-- Tabela de Vendas -->
@@ -37,10 +37,10 @@
                 <td>{{ venda.id }}</td>
                 <td>{{ venda.livro.titulo }}</td>
                 <td>{{ venda.cliente.nome_completo }}</td>
-                <td>{{ venda.valor_pago }}</td>
+                <td>R$ {{ "%.2f"|format(venda.valor_pago) }}</td>
                 <td>{{ venda.data_venda.strftime('%d/%m/%Y %H:%M') }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-    {% endblock %}
+{% endblock %}

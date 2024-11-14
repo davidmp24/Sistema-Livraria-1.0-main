@@ -35,7 +35,29 @@ def home():
         
         vendas = Venda.query.all()  # Consulta todas as vendas
         
-        return render_template('index.html', vendas=vendas)  # Passa as vendas para o template
+        # Adicione a lógica de dados do dashboard
+        vendas_dia_total = calcular_vendas_dia_total()
+        print("Vendas do Dia Total:", vendas_dia_total)  # Adicione o log aqui
+
+        vendas_dia_quantidade = db.session.query(db.func.count(Venda.id)).filter(db.func.date(Venda.data_venda) == datetime.today().date()).scalar() or 0
+        vendas_semana_total = calcular_vendas_semana_total()
+        vendas_semana_quantidade = db.session.query(db.func.count(Venda.id)).filter(Venda.data_venda >= datetime.today() - timedelta(days=datetime.today().weekday())).scalar() or 0
+        
+        vendas_dia_labels = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta']
+        vendas_dia_dados = [20, 15, 30, 25, 40, 10, 50]
+        vendas_semana_labels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
+        vendas_semana_dados = [100, 120, 150, 200, 180, 160, 140]
+        
+        return render_template('index.html', 
+                               vendas=vendas,
+                               vendas_dia_total=vendas_dia_total,
+                               vendas_dia_quantidade=vendas_dia_quantidade,
+                               vendas_semana_total=vendas_semana_total,
+                               vendas_semana_quantidade=vendas_semana_quantidade,
+                               vendas_dia_labels=vendas_dia_labels,
+                               vendas_dia_dados=vendas_dia_dados,
+                               vendas_semana_labels=vendas_semana_labels,
+                               vendas_semana_dados=vendas_semana_dados)
     return redirect(url_for('login'))
 
 # FIM HOME
@@ -557,18 +579,23 @@ def relatorio_vendas():
                            vendas_dia_total=vendas_dia_total, vendas_semana_total=vendas_semana_total)
 
 
-# Função para calcular as vendas do dia
+# Calcular o total de vendas do dia
 def calcular_vendas_dia_total():
-    hoje = datetime.now(timezone.utc).date()  # Obtém a data atual (sem hora) com fuso horário UTC
-    total_vendas_dia = db.session.query(func.sum(Venda.valor_total)).filter(func.date(Venda.data_venda) == hoje).scalar()
-    return total_vendas_dia if total_vendas_dia else 0.00  # Retorna 0 se não houver vendas
+    hoje = datetime.today().date()
+    total_dia = db.session.query(db.func.sum(Venda.valor_total)).filter(db.func.date(Venda.data_venda) == hoje).scalar()
+    return total_dia if total_dia is not None else 0.0
 
-# Função para calcular as vendas da semana
+# Calcular a quantidade de vendas do dia
+vendas_dia_quantidade = db.session.query(db.func.count(Venda.id)).filter(db.func.date(Venda.data_venda) == datetime.today().date()).scalar() or 0
+
+# Calcular o total de vendas da semana
 def calcular_vendas_semana_total():
-    hoje = datetime.now(timezone.utc).date()  # Obtém a data atual com fuso horário UTC
-    inicio_semana = hoje - timedelta(days=hoje.weekday())  # Obtém a data da última segunda-feira
-    total_vendas_semana = db.session.query(func.sum(Venda.valor_total)).filter(Venda.data_venda >= inicio_semana).scalar()
-    return total_vendas_semana if total_vendas_semana else 0.00  # Retorna 0 se não houver vendas
+    inicio_semana = datetime.today() - timedelta(days=datetime.today().weekday())
+    total_semana = db.session.query(db.func.sum(Venda.valor_total)).filter(Venda.data_venda >= inicio_semana).scalar()
+    return total_semana if total_semana is not None else 0.0
+
+# Calcular a quantidade de vendas da semana
+vendas_semana_quantidade = db.session.query(db.func.count(Venda.id)).filter(Venda.data_venda >= datetime.today() - timedelta(days=datetime.today().weekday())).scalar() or 0
 
 @app.route('/dashboard')
 def dashboard():

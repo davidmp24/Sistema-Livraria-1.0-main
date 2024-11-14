@@ -9,7 +9,8 @@
                 <div class="card-body">
                     <h5 class="card-title">Vendas do Dia</h5>
                     <!-- Verificação com default para garantir que o valor é numérico -->
-                    <p class="card-text">Total: R$ {{ vendas_dia_total | default(0.00) | round(2) }}</p>
+                    <p class="card-text">Total: R$ 
+                        {{ vendas_dia_total | default(0.00) | round(2) }}</p>
                     <p class="card-text">Quantidade: {{ vendas_dia_quantidade }}</p>
                     
                 </div>
@@ -42,7 +43,7 @@
     </div>
 </div> -->
 
-<!-- Chart.js Script para Gráficos -->
+<!-- Chart.js Script para Gráficos
 <script>
     const vendasDiaChart = new Chart(document.getElementById('vendasDiaChart').getContext('2d'), {
         type: 'bar',
@@ -89,3 +90,4 @@
         }
     });
 </script>
+ -->
