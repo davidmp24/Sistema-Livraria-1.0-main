@@ -20,7 +20,6 @@
                 {% for venda in vendas %}
                 <tr>
                     <td>{{ venda.id }}</td>
-                    <!-- Verificação para garantir que o cliente existe -->
                     <td>{{ venda.cliente.nome_completo if venda.cliente else 'Cliente Não Encontrado' }}</td>
                     <td>{{ venda.livro_id }}</td>
                     <td>{{ venda.data_venda.strftime('%d/%m/%Y') }}</td>

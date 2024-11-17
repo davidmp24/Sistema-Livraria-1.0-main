@@ -1,6 +1,6 @@
 from config import db
 from datetime import datetime
-from sqlalchemy import Float  # Certifique-se de importar o tipo Float
+from sqlalchemy import Float  
 
 
 class Cliente(db.Model):
@@ -8,11 +8,11 @@ class Cliente(db.Model):
     nome_completo = db.Column(db.String(100), nullable=False)
     data_nascimento = db.Column(db.String(10), nullable=False)
     identidade = db.Column(db.String(50), nullable=False)
-    telefone = db.Column(db.String(20), nullable=False)  # Coluna telefone
+    telefone = db.Column(db.String(20), nullable=False)  
     email = db.Column(db.String(100), nullable=False) 
-    rua = db.Column(db.String(100), nullable=False)  # Coluna rua
+    rua = db.Column(db.String(100), nullable=False)  
     cep = db.Column(db.String(9), nullable=False)
-    bairro = db.Column(db.String(100), nullable=False)  # Coluna bairro
+    bairro = db.Column(db.String(100), nullable=False)  
     cidade = db.Column(db.String(50), nullable=False)
     profissao = db.Column(db.String(50), nullable=False)
     escolaridade = db.Column(db.String(50), nullable=False)
@@ -59,12 +59,12 @@ class Venda(db.Model):
     quantidade_vendida = db.Column(db.Integer, nullable=False)
     valor_total = db.Column(db.Float, nullable=False)
 
-    # Relacionamentos
+    
     cliente = db.relationship('Cliente', backref=db.backref('vendas', lazy=True))
     livro = db.relationship('Livro', backref=db.backref('vendas', lazy=True))
 
     def __repr__(self):
-        # Acessando o título do livro através da relação livro
+        
         return f'<Venda {self.id} - Cliente: {self.cliente.nome_completo} - Livro: {self.livro.titulo} - Quantidade: {self.quantidade_vendida}>'
 
 

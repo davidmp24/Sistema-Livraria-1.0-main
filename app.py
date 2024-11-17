@@ -2,42 +2,42 @@ from flask import render_template, redirect, url_for, request, session, flash
 from flask import Flask, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, current_user
 from config import app, db
-from models import Cliente, Livro, Venda  # Certifique-se de que Livro está importado corretamente
+from models import Cliente, Livro, Venda  
 from datetime import datetime, timedelta, timezone
 import os
 import requests
 from werkzeug.utils import secure_filename
 from flask_migrate import Migrate
-from config import app, db  # Certifique-se de que 'app' e 'db' estão importados corretamente
+from config import app, db  
 import logging
 from sqlalchemy import func
 
 migrate = Migrate(app, db)
 
-# Inicialização do LoginManager
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-# Definição do carregador de usuário
+
 @login_manager.user_loader
 def load_user(user_id):
-    return username.query.get(int(user_id))  # Aqui, retorne o usuário correspondente ao ID
+    return username.query.get(int(user_id))  
 
-# Simulação de dados de login (usuário e senha)
+
 USERS = {
-    'admin': '123'  # Substitua por uma senha real
+    'admin': '123'  
 }
-# HOME
+
 
 @app.route('/')
 def home():
     if 'username' in session:
         
-        vendas = Venda.query.all()  # Consulta todas as vendas
+        vendas = Venda.query.all()  
         
-        # Adicione a lógica de dados do dashboard
+        
         vendas_dia_total = calcular_vendas_dia_total()
-        print("Vendas do Dia Total:", vendas_dia_total)  # Adicione o log aqui
+        print("Vendas do Dia Total:", vendas_dia_total)  
 
         vendas_dia_quantidade = db.session.query(db.func.count(Venda.id)).filter(db.func.date(Venda.data_venda) == datetime.today().date()).scalar() or 0
         vendas_semana_total = calcular_vendas_semana_total()
@@ -60,10 +60,10 @@ def home():
                                vendas_semana_dados=vendas_semana_dados)
     return redirect(url_for('login'))
 
-# FIM HOME
-#####################################
 
-# LOGIN
+
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -85,7 +85,7 @@ def logout():
 
 @app.route('/alterar_senha', methods=['GET', 'POST'])
 def alterar_senha():
-    # Verifica se o usuário está autenticado
+    
     if 'username' not in session:
         flash('Você precisa estar logado para alterar a senha.', 'danger')
         return redirect(url_for('login'))
@@ -95,20 +95,20 @@ def alterar_senha():
         confirmar_senha = request.form['confirmar_senha']
 
         if nova_senha == confirmar_senha:
-            # Aqui você pode implementar a lógica para atualizar a senha do usuário
-            # No seu caso, se estiver usando um dicionário USERS:
+            
+            
             USERS[session['username']] = nova_senha
             flash('Senha alterada com sucesso!', 'success')
-            return redirect(url_for('home'))  # Redireciona para a página inicial
+            return redirect(url_for('home'))  
         else:
             flash('As senhas não conferem. Tente novamente.', 'danger')
 
     return render_template('alterar_senha.html')
 
-# FIM LOGIN
-#########################################
 
-# CLIENTES
+
+
+
 @app.route('/clientes', methods=['GET', 'POST'])
 def clientes():
     if request.method == 'POST':
@@ -118,7 +118,7 @@ def clientes():
         telefone = request.form['telefone']
         email = request.form['email'] 
         rua = request.form['rua']
-        cep = request.form['cep']  # Adicionando o campo 'cep'
+        cep = request.form['cep']  
         bairro = request.form['bairro']
         cidade = request.form['cidade']
         profissao = request.form['profissao']
@@ -131,7 +131,7 @@ def clientes():
             telefone=telefone,
             email=email,
             rua=rua,
-            cep=cep,  # Salvando o 'cep' no banco de dados
+            cep=cep,  
             bairro=bairro,
             cidade=cidade,
             profissao=profissao,
@@ -170,7 +170,7 @@ def editar_cliente(id):
         cliente.identidade = request.form['identidade']
         cliente.telefone = request.form['telefone']
         cliente.rua = request.form['rua']
-        cliente.cep = request.form['cep']  # Atualizando o campo 'cep'
+        cliente.cep = request.form['cep']  
         cliente.bairro = request.form['bairro']
         cliente.cidade = request.form['cidade']
         cliente.profissao = request.form['profissao']
@@ -208,7 +208,7 @@ def visualizar_cliente(id):
 def buscar_endereco():
     cep = request.args.get('cep')
     if cep:
-        # Remover caracteres não numéricos do CEP
+        
         cep = ''.join(filter(str.isdigit, cep))
         response = requests.get(f'https://viacep.com.br/ws/{cep}/json/')
         
@@ -235,7 +235,7 @@ def detalhes_cliente(id):
         'identidade': cliente.identidade,
         'telefone': cliente.telefone,
         'rua': cliente.rua,
-        'cep': cliente.cep,  # Incluindo 'cep' nos detalhes do cliente
+        'cep': cliente.cep,  
         'bairro': cliente.bairro,
         'cidade': cliente.cidade,
         'profissao': cliente.profissao,
@@ -245,16 +245,16 @@ def detalhes_cliente(id):
     return jsonify(cliente_data)
 
 
-# FIM CLIENTES
-#########################################
 
-# LIVROS
+
+
+
 @app.route('/livros')
 def livros():
     if 'username' not in session:
         return redirect(url_for('login'))
 
-    # Recupera todos os livros do banco de dados
+    
     livros = Livro.query.all()
 
     return render_template('livros.html', livros=livros)
@@ -266,40 +266,40 @@ def visualizar_livro(id):
     return render_template('detalhes_livro.html', livro=livro)
 
 
-# Define o diretório para salvar as capas dos livros
+
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Rota para editar o livro
+
 @app.route('/editar_livro/<int:id>', methods=['GET', 'POST'])
 def editar_livro(id):
     livro = Livro.query.get_or_404(id)
     
     if request.method == 'POST':
-        # Atualiza os dados do livro com base nos valores do formulário
+        
         livro.titulo = request.form['titulo']
         livro.autor = request.form['autor']
         livro.editora = request.form['editora']
-        livro.idade_leitura = request.form['idade_leitura']  # Atualizado de 'idade_leitura' para 'genero'
+        livro.idade_leitura = request.form['idade_leitura']  
         livro.isbn = request.form['isbn']
         livro.ano = request.form['ano']
         livro.num_paginas = request.form['num_paginas']
         livro.valor = request.form['valor']
         livro.estoque = request.form['estoque']
-        livro.capa_livro = request.form.get('capa_livro')  # Atualiza a URL da capa do livro
+        livro.capa_livro = request.form.get('capa_livro')  
 
         try:
-            db.session.commit()  # Salva as alterações no banco de dados
+            db.session.commit()  
             flash('Livro atualizado com sucesso!', 'success')
-            return redirect(url_for('livros'))  # Redireciona para a página de listagem de livros
+            return redirect(url_for('livros'))  
         except SQLAlchemyError as e:
-            db.session.rollback()  # Desfaz as alterações em caso de erro
+            db.session.rollback()  
             flash(f'Erro ao atualizar o livro: {str(e)}', 'danger')
             return redirect(url_for('editar_livro', id=id))
 
     return render_template('editar_livro.html', livro=livro)
 
-# Rota para deletar o livro
+
 @app.route('/deletar_livro/<int:id>', methods=['POST'])
 def deletar_livro(id):
     livro = Livro.query.get_or_404(id)
@@ -308,39 +308,39 @@ def deletar_livro(id):
     return redirect(url_for('livros'))
 
 
-# Rota para criar um novo livro
+
 @app.route('/novo_livro', methods=['GET', 'POST'])
 def novo_livro():
     if request.method == 'POST':
-        # Pegar os dados do formulário
+        
         titulo = request.form['titulo']
         autor = request.form['autor']
         editora = request.form['editora']
-        idade_leitura = request.form.get('idade_leitura')  # Atualizado de 'idade_leitura' para 'genero'
+        idade_leitura = request.form.get('idade_leitura')  
         isbn = request.form['isbn']
         ano = request.form['ano']
         num_paginas = request.form['num_paginas']
         valor = request.form['valor']
         estoque = request.form['estoque']
 
-        # Pegar a URL da capa do livro (enviada via campo oculto no formulário)
-        capa_livro_url = request.form.get('capa_livro')  # Buscando a URL da capa
+        
+        capa_livro_url = request.form.get('capa_livro')  
 
-        # Criar um novo objeto livro com os dados do formulário
+        
         novo_livro = Livro(
             titulo=titulo,
             autor=autor,
             editora=editora,
-            idade_leitura=idade_leitura,  # Atualizado para 'genero'
+            idade_leitura=idade_leitura,  
             isbn=isbn,
             ano=ano,
             num_paginas=num_paginas,
             valor=valor,
             estoque=estoque,
-            capa_livro=capa_livro_url  # Armazena a URL da capa do livro
+            capa_livro=capa_livro_url  
         )
 
-        # Adicionar e comitar no banco de dados
+        
         db.session.add(novo_livro)
         db.session.commit()
 
@@ -349,12 +349,12 @@ def novo_livro():
     return render_template('novo_livro.html')
 
 
-# Rota para atualizar o livro no banco de dados
+
 @app.route('/atualizar_livro/<int:livro_id>', methods=['POST'])
 def atualizar_livro(livro_id):
     livro = Livro.query.get_or_404(livro_id)
 
-    # Atualizar os dados do livro com base no formulário
+    
     livro.titulo = request.form['titulo']
     livro.autor = request.form['autor']
     livro.editora = request.form['editora']
@@ -366,20 +366,20 @@ def atualizar_livro(livro_id):
     livro.estoque = request.form['estoque']
 
     try:
-        db.session.commit()  # Salvar as alterações no banco de dados
+        db.session.commit()  
         flash('Livro atualizado com sucesso!', 'success')
-        return redirect(url_for('livros'))  # Redirecionar para a página de listagem de livros
+        return redirect(url_for('livros'))  
     except SQLAlchemyError as e:
         db.session.rollback()
         flash(f'Erro ao atualizar o livro: {str(e)}', 'danger')
         return redirect(url_for('editar_livro', livro_id=livro_id))
 
 
-# FIM LIVROS
-#########################################
 
-#VENDAS
-#########################################
+
+
+
+
 logging.basicConfig(level=logging.DEBUG)
 
 @app.route('/vendas', methods=['GET', 'POST'])
@@ -388,7 +388,7 @@ def vendas():
     if request.method == 'POST':
         livro_id = request.form.get('livro_id')
 
-        # Buscar livro no banco de dados
+        
         with db.session() as session:
           livro = session.get(Livro, livro_id)
 
@@ -398,7 +398,7 @@ def vendas():
                 'id': livro.id,
                 'titulo': livro.titulo,
                 'autor': livro.autor,
-                'genero': livro.idade_leitura,  # ou outro campo referente ao gênero
+                'genero': livro.idade_leitura,  
                 'estoque': livro.estoque,
                 'valor': livro.valor
             }
@@ -411,12 +411,12 @@ def vendas():
 def confirmar_venda():
     logging.debug("Recebendo solicitação para confirmar venda...")
     
-    data = request.get_json()  # Recebendo os dados JSON
+    data = request.get_json()  
     if not data:
         logging.error("Nenhum dado foi enviado na solicitação.")
         return jsonify({'success': False, 'error': 'No data provided'}), 400
 
-    # Extraindo os dados
+    
     livro_id = data.get('livro_id')
     quantidade = data.get('quantidade')
     valor_total = data.get('valor_total')
@@ -424,29 +424,29 @@ def confirmar_venda():
 
     logging.debug(f"Dados recebidos: {data}")
 
-    # Verificando se todos os campos estão presentes
+    
     if not livro_id or not quantidade or not valor_total or not cliente_info:
         logging.error("Dados ausentes na solicitação.")
         return jsonify({'success': False, 'error': 'Missing data'}), 400
 
-    # Buscar o cliente pelo info (pode ser CPF ou outro identificador)
+    
     cliente = Cliente.query.filter((Cliente.identidade == cliente_info) | (Cliente.email == cliente_info)).first()
     if not cliente:
         logging.error(f"Cliente não encontrado para o info: {cliente_info}")
         return jsonify({'success': False, 'error': 'Cliente not found'}), 400
 
-    # Buscar o livro
+    
     livro = Livro.query.get(livro_id)
     if not livro:
         logging.error(f"Livro não encontrado com ID: {livro_id}")
         return jsonify({'success': False, 'error': 'Livro not found'}), 400
 
-    # Verificando a quantidade em estoque
+    
     if quantidade > livro.estoque:
         logging.error(f"Quantidade solicitada: {quantidade} excede o estoque disponível: {livro.estoque}")
         return jsonify({'success': False, 'error': 'Insufficient stock'}), 400
 
-    # Criar a venda
+    
     nova_venda = Venda(
         cliente_id=cliente.id,
         livro_id=livro_id,
@@ -457,16 +457,16 @@ def confirmar_venda():
 
     )
 
-    # Adicionar a venda ao banco de dados
+    
     db.session.add(nova_venda)
-    livro.estoque -= quantidade  # Atualizar o estoque do livro
+    livro.estoque -= quantidade  
     db.session.commit()
 
     logging.debug(f"Venda confirmada com sucesso! ID da venda: {nova_venda.id}")
     return jsonify({'success': True, 'venda_id': nova_venda.id}), 200
 
 
-# Rota Buscar Cliente
+
 @app.route('/buscar_cliente', methods=['GET'])
 def buscar_cliente():
     info = request.args.get('info', '')
@@ -480,14 +480,14 @@ def buscar_cliente():
     else:
         return jsonify(success=False, clientes=[])
         
-#Rota extrato de venda
+
 @app.route('/extrato_venda/<int:venda_id>', methods=['GET'])
 def extrato_venda(venda_id):
     venda = Venda.query.get_or_404(venda_id)
     return render_template('extrato_venda.html', venda=venda)
 
 
-#Rota para buscar livro automatico
+
 @app.route('/buscar_livro/<int:livro_id>')
 def buscar_livro(livro_id):
     with db.session() as session:
@@ -511,7 +511,7 @@ def atualizar_venda():
     venda_id = data['venda_id']
     valor_pago = data['valor_pago']
 
-    # Atualizar a venda no banco de dados
+    
     venda = Venda.query.get(venda_id)
     if venda:
         venda.valor_pago = valor_pago
@@ -529,29 +529,29 @@ def controle_caixa():
 
     query = Venda.query
 
-    # Filtros aplicados à consulta de vendas
+    
     if cliente:
         query = query.join(Cliente).filter(Cliente.nome_completo.ilike(f"%{cliente}%"))
     if titulo:
         query = query.join(Livro).filter(Livro.titulo.ilike(f"%{titulo}%"))
     if data:
-        query = query.filter(Venda.data_venda.contains(data))  # Ajuste para data conforme necessário
+        query = query.filter(Venda.data_venda.contains(data))  
 
     vendas = query.all()
 
     return render_template('controle_caixa.html', vendas=vendas)
 
-#FIM#########################################################
 
-#CONTROLE DE CAIXA ##########################################
+
+
 
 @app.template_filter('currency')
 def currency_filter(value):
     """Formata um número como moeda brasileira."""
     return f"R$ {value:.2f}".replace('.', ',')
-#FIM ########################################################
 
-# CONFIGURAÇÃO
+
+
 
 @app.route('/configuracao')
 def configuracao():
@@ -559,19 +559,19 @@ def configuracao():
         return redirect(url_for('login'))
     return render_template('configuracao.html')
 
-# FIM CONFIGURAÇÃO
-#########################################
+
+
 
 @app.route('/relatorio-vendas')
 def relatorio_vendas():
-    # Consulta as vendas com os clientes associados
-    vendas = Venda.query.join(Cliente).all()  # Realiza a junção entre as tabelas Venda e Cliente
+    
+    vendas = Venda.query.join(Cliente).all()  
        
-  # Consultas ao banco de dados para obter as vendas do dia e da semana
+  
     vendas_dia = db.session.query(Venda).filter(Venda.data_venda == datetime.now(timezone.utc).date()).all()
     vendas_semana = db.session.query(Venda).filter(Venda.data_venda >= datetime.now(timezone.utc) - timedelta(weeks=1)).all()
     
-    # Processar dados para gráficos
+    
     vendas_dia_total = sum([v.valor_total for v in vendas_dia])
     vendas_semana_total = sum([v.valor_total for v in vendas_semana])
 
@@ -579,41 +579,41 @@ def relatorio_vendas():
                            vendas_dia_total=vendas_dia_total, vendas_semana_total=vendas_semana_total)
 
 
-# Calcular o total de vendas do dia
+
 def calcular_vendas_dia_total():
     hoje = datetime.today().date()
     total_dia = db.session.query(db.func.sum(Venda.valor_total)).filter(db.func.date(Venda.data_venda) == hoje).scalar()
     return total_dia if total_dia is not None else 0.0
 
-# Calcular a quantidade de vendas do dia
+
 vendas_dia_quantidade = db.session.query(db.func.count(Venda.id)).filter(db.func.date(Venda.data_venda) == datetime.today().date()).scalar() or 0
 
-# Calcular o total de vendas da semana
+
 def calcular_vendas_semana_total():
     inicio_semana = datetime.today() - timedelta(days=datetime.today().weekday())
     total_semana = db.session.query(db.func.sum(Venda.valor_total)).filter(Venda.data_venda >= inicio_semana).scalar()
     return total_semana if total_semana is not None else 0.0
 
-# Calcular a quantidade de vendas da semana
+
 vendas_semana_quantidade = db.session.query(db.func.count(Venda.id)).filter(Venda.data_venda >= datetime.today() - timedelta(days=datetime.today().weekday())).scalar() or 0
 
 @app.route('/dashboard')
 def dashboard():
-    # Calcular o total de vendas do dia
-    vendas_dia_total = calcular_vendas_dia_total()  # Função que já retorna o total de vendas do dia
+    
+    vendas_dia_total = calcular_vendas_dia_total()  
     vendas_dia_quantidade = db.session.query(db.func.count(Venda.id)).filter(db.func.date(Venda.data_venda) == datetime.today().date()).scalar() or 0
 
-    # Calcular o total de vendas da semana
-    vendas_semana_total = calcular_vendas_semana_total()  # Função que já retorna o total de vendas da semana
+    
+    vendas_semana_total = calcular_vendas_semana_total()  
     vendas_semana_quantidade = db.session.query(db.func.count(Venda.id)).filter(Venda.data_venda >= datetime.today() - timedelta(days=datetime.today().weekday())).scalar() or 0
 
-    # Preparar os dados para os gráficos de vendas
-    vendas_dia_labels = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta']  # Exemplo
-    vendas_dia_dados = [20, 15, 30, 25, 40, 10, 50]  # Exemplo de dados
-    vendas_semana_labels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']  # Dias da semana
-    vendas_semana_dados = [100, 120, 150, 200, 180, 160, 140]  # Exemplo de dados de vendas semanais
+    
+    vendas_dia_labels = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta']  
+    vendas_dia_dados = [20, 15, 30, 25, 40, 10, 50]  
+    vendas_semana_labels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']  
+    vendas_semana_dados = [100, 120, 150, 200, 180, 160, 140]  
 
-    # Passando os dados para o template
+    
     return render_template('dashboard.html',
                            vendas_dia_total=vendas_dia_total,
                            vendas_dia_quantidade=vendas_dia_quantidade,
@@ -626,5 +626,5 @@ def dashboard():
 
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()  # Certifique-se de que as tabelas estão sendo criadas
+        db.create_all()  
     app.run(debug=True)
